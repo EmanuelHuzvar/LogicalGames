@@ -28,7 +28,7 @@ var (
 )
 
 func MakeGame(levelFilename string) fyne.Window {
-	myApp := app.New()
+	myApp := app.NewWithID("PaintFloor")
 	myWindow := myApp.NewWindow("Grid Game")
 
 	// Load level data from the file
@@ -37,9 +37,9 @@ func MakeGame(levelFilename string) fyne.Window {
 	}
 
 	// Create a container with the grid layout
-	gridLayout := container.NewGridWithColumns(gridWidth)
-	for y := 0; y < gridWidth; y++ {
-		for x := 0; x < gridHeight; x++ {
+	gridLayout := container.NewGridWithColumns(gridWidth) // Use gridWidth here for the number of columns
+	for x := 0; x < gridHeight; x++ {                     // Iterate over rows first (height)
+		for y := 0; y < gridWidth; y++ { // Then iterate over columns (width) within each row
 			gridLayout.Add(grid[x][y])
 		}
 	}
@@ -50,6 +50,7 @@ func MakeGame(levelFilename string) fyne.Window {
 		case fyne.KeyUp, fyne.KeyDown, fyne.KeyLeft, fyne.KeyRight:
 			movePlayer(string(key.Name))
 			if checkLevelComplete() {
+				print("level complete")
 				// Level is complete, perform necessary action
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title:   "Grid Game",
@@ -68,19 +69,19 @@ func movePlayer(direction string) {
 	dx, dy := 0, 0
 	switch direction {
 	case string(fyne.KeyUp):
-		dy = -1
-	case string(fyne.KeyDown):
-		dy = 1
-	case string(fyne.KeyLeft):
 		dx = -1
-	case string(fyne.KeyRight):
+	case string(fyne.KeyDown):
 		dx = 1
+	case string(fyne.KeyLeft):
+		dy = -1
+	case string(fyne.KeyRight):
+		dy = 1
 	}
 
 	// Continue moving in the direction with a delay for smoother animation
 	for {
 		newX, newY := playerX+dx, playerY+dy
-		if newX >= 0 && newX < gridWidth && newY >= 0 && newY < gridHeight && !isObstacle(newX, newY) {
+		if newX >= 0 && newX < gridHeight && newY >= 0 && newY < gridWidth && !isObstacle(newX, newY) {
 			// Paint the current cell
 			paintCell(playerX, playerY)
 
@@ -110,8 +111,8 @@ func isObstacle(x, y int) bool {
 
 func checkLevelComplete() bool {
 	for x := 0; x < gridHeight; x++ {
-		for y := 0; y < gridHeight; y++ {
-			if grid[x][y].FillColor != color.Black && grid[x][y].FillColor != obstacleColor {
+		for y := 0; y < gridWidth; y++ {
+			if grid[x][y].FillColor != color.Black && grid[x][y].FillColor != obstacleColor && grid[x][y].FillColor != playerColor {
 				return false
 			}
 		}
@@ -171,7 +172,6 @@ func loadLevelFromFile(filename string) error {
 			case 'S': // Starting position
 				playerX, playerY = x, y
 				grid[x][y].FillColor = playerColor
-				// Add more cases as needed
 			}
 		}
 		x++
