@@ -144,9 +144,12 @@ func checkLevelComplete() bool {
 }
 
 // return gridWidth,gridth height,error
+// first number in the first line is gridHeight
+// secoond number is gridWidth
 func getLevelSize(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	defer file.Close()
@@ -154,19 +157,25 @@ func getLevelSize(filename string) error {
 	scanner := bufio.NewScanner(file)
 	// Read the first line to get the grid size
 	if !scanner.Scan() {
+		fmt.Println(err)
 		return errors.New("failed to read grid size")
 	}
 	sizeStr := scanner.Text()
 	sizeParts := strings.Split(sizeStr, "x")
 	if len(sizeParts) != 2 {
+		fmt.Println(err)
 		return errors.New("invalid grid size format")
 	}
 	gridHeight, err = strconv.Atoi(sizeParts[0])
+	fmt.Println("Number of lines: " + strconv.Itoa(gridHeight))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	gridWidth, err = strconv.Atoi(sizeParts[1])
+	fmt.Println("Number of collumns: " + strconv.Itoa(gridWidth))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil
@@ -184,25 +193,9 @@ func loadLevelFromFile(filename string, gridLayout *fyne.Container) error {
 	if !scanner.Scan() {
 		return errors.New("failed to skip the grid size line")
 	}
-	//// Read the first line to get the grid size
-	//if !scanner.Scan() {
-	//	return errors.New("failed to read grid size")
-	//}
-	//sizeStr := scanner.Text()
-	//sizeParts := strings.Split(sizeStr, "x")
-	//if len(sizeParts) != 2 {
-	//	return errors.New("invalid grid size format")
-	//}
-	//gridHeight, err = strconv.Atoi(sizeParts[0])
-	//if err != nil {
-	//	return err
-	//}
-	//gridWidth, err = strconv.Atoi(sizeParts[1])
-	//if err != nil {
-	//	return err
-	//}
 
 	// Initialize the grid with the read size
+	gridLayout.Objects = nil // Clear existing objects in gridLayout
 	grid = make([][]*canvas.Rectangle, gridHeight)
 	for x := range grid {
 		grid[x] = make([]*canvas.Rectangle, gridWidth)
@@ -244,7 +237,6 @@ func loadLevelFromFile(filename string, gridLayout *fyne.Container) error {
 	}
 
 	// Clear existing grid layout
-	gridLayout.Objects = nil // Clear existing objects in gridLayout
 
 	for x := 0; x < gridHeight; x++ { // Iterate over rows first (height)
 		for y := 0; y < gridWidth; y++ { // Then iterate over columns (width) within each row
@@ -262,18 +254,25 @@ func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout
 		widget.NewLabel("Level Complete!"),
 		widget.NewButton("Next Level", func() {
 			*currentLevel++
-			err := loadLevelFromFile("marek-games/PaintFloor/levels/lvl"+strconv.Itoa(*currentLevel)+".txt", gridLayout)
+			err := getLevelSize("marek-games/PaintFloor/levels/lvl" + strconv.Itoa(*currentLevel) + ".txt")
+
+			gridLayout.Objects = nil
+			gridLayout = container.NewGridWithColumns(gridWidth)
+
+			err = loadLevelFromFile("marek-games/PaintFloor/levels/lvl"+strconv.Itoa(*currentLevel)+".txt", gridLayout)
 			if err != nil {
 				return
 			} // Load the next level
 			fmt.Println("leading new level:" + strconv.Itoa(*currentLevel))
 
 			levelComplete = false
-			gridLayout.Refresh()
+			myWindow.SetContent(gridLayout)
 			levelCompleteMenu.Hide()
 			myWindow.Canvas().Refresh(myWindow.Content())
 		}),
 		// Add other buttons if necessary
 	), myWindow.Canvas())
+	myWindow.SetContent(gridLayout)
+	myWindow.Resize(fyne.NewSize(float32(gridWidth*cellSize+700), float32(gridHeight*cellSize+700)))
 	return levelCompleteMenu
 }
