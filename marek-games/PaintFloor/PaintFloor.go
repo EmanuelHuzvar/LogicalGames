@@ -47,17 +47,13 @@ func MakeGame(levelFilename string) fyne.Window {
 		// Handle the error, maybe load a default level
 	}
 
-	// Create a container with the grid layout
-	//gridLayout := container.NewGridWithColumns(gridWidth) // Use gridWidth here for the number of columns
-	//for x := 0; x < gridHeight; x++ {                     // Iterate over rows first (height)
-	//	for y := 0; y < gridWidth; y++ { // Then iterate over columns (width) within each row
-	//		gridLayout.Add(grid[x][y])
-	//	}
-	//}
-
 	// Function to create and show the level complete menu
 	levelCompleteMenu = createLevelCompleteMenu(myWindow, &currentLevel, gridLayout)
 	levelCompleteMenu.Hide()
+
+	//create pause button
+	//pauseButton := makePauseButton(myWindow, &currentLevel)
+
 	myWindow.Canvas().Refresh(myWindow.Content())
 
 	// Handle key inputs for movement
@@ -275,4 +271,21 @@ func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout
 	myWindow.SetContent(gridLayout)
 	myWindow.Resize(fyne.NewSize(float32(gridWidth*cellSize+700), float32(gridHeight*cellSize+700)))
 	return levelCompleteMenu
+}
+
+func makePauseButton(myWindow fyne.Window, currentLevel *int) *widget.Button {
+	pauseButton := widget.NewButton("Pause", func() {
+		showPauseMenu(myWindow, currentLevel)
+	})
+	return pauseButton
+}
+
+func showPauseMenu(myWindow fyne.Window, currentLevel *int) {
+	menu := widget.NewPopUpMenu(fyne.NewMenu("",
+		fyne.NewMenuItem("Select Level", func() {
+			// Logic for selecting a level
+		}),
+		// Add more menu items as needed
+	), myWindow.Canvas())
+	menu.Show()
 }
