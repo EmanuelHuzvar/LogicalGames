@@ -29,6 +29,8 @@ var (
 	playerColor      = color.RGBA{R: 255, G: 0, B: 0, A: 255}     // Red color for the player
 )
 var levelCompleteMenu *widget.PopUp
+var pauseMenu *widget.PopUp
+var levelsMenu *widget.PopUp
 var levelComplete = false
 
 func MakeGame(levelFilename string) fyne.Window {
@@ -52,8 +54,14 @@ func MakeGame(levelFilename string) fyne.Window {
 	levelCompleteMenu.Hide()
 
 	//create pause button
-	//pauseButton := makePauseButton(myWindow, &currentLevel)
+	pauseButton := makePauseButton(myWindow, &currentLevel)
 
+	//create pause menu
+	pauseMenu = createPauseMenu(myWindow, &currentLevel)
+	pauseMenu.Hide()
+
+	//create level menu
+	levelsMenu = createLevelSelectionMenu(myWindow, &currentLevel)
 	myWindow.Canvas().Refresh(myWindow.Content())
 
 	// Handle key inputs for movement
@@ -76,7 +84,11 @@ func MakeGame(levelFilename string) fyne.Window {
 		}
 	})
 
-	myWindow.SetContent(gridLayout)
+	// Use Border Layout to position the pause button at the top
+	topBar := container.NewHBox(pauseButton)
+	content := container.NewBorder(topBar, nil, nil, nil, gridLayout)
+
+	myWindow.SetContent(content)
 	myWindow.Resize(fyne.NewSize(float32(gridWidth*cellSize+350), float32(gridHeight*cellSize+350)))
 	return myWindow
 }
@@ -275,17 +287,46 @@ func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout
 
 func makePauseButton(myWindow fyne.Window, currentLevel *int) *widget.Button {
 	pauseButton := widget.NewButton("Pause", func() {
-		showPauseMenu(myWindow, currentLevel)
+		createPauseMenu(myWindow, currentLevel)
 	})
 	return pauseButton
 }
 
-func showPauseMenu(myWindow fyne.Window, currentLevel *int) {
-	menu := widget.NewPopUpMenu(fyne.NewMenu("",
-		fyne.NewMenuItem("Select Level", func() {
-			// Logic for selecting a level
+func createPauseMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
+	menuContent := container.NewVBox(
+		widget.NewButton("Select Level", func() {
+			createLevelSelectionMenu(myWindow, currentLevel)
 		}),
-		// Add more menu items as needed
-	), myWindow.Canvas())
-	menu.Show()
+		widget.NewButton("Home", func() {
+			// Logic for the Home button
+		}),
+		// Add other buttons or options as needed
+	)
+	pauseMenu := widget.NewModalPopUp(menuContent, myWindow.Canvas())
+	pauseMenu.Show()
+	return pauseMenu
+}
+
+func createLevelSelectionMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
+	levelSelectLayout := container.NewVBox()
+
+	totalLevels := 5 // Example total number of levels
+	for i := 1; i <= totalLevels; i++ {
+		level := i // Capture loop variable
+		levelButton := widget.NewButton(fmt.Sprintf("Level %d", level), func() {
+			*currentLevel = level
+			err := loadLevelFromFile(fmt.Sprintf("marek-games/PaintFloor/levels/lvl%d.txt", level), myWindow.Content().(*fyne.Container))
+			if err != nil {
+				fmt.Println("Error loading level:", err)
+				return
+			}
+			levelComplete = false
+			myWindow.Canvas().Refresh(myWindow.Content())
+		})
+		levelSelectLayout.Add(levelButton)
+	}
+
+	levelSelectMenu := widget.NewModalPopUp(levelSelectLayout, myWindow.Canvas())
+	levelSelectMenu.Show()
+	return levelSelectMenu
 }
