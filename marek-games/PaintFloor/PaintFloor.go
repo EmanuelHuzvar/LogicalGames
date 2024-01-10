@@ -28,6 +28,7 @@ var (
 	obstacleColor    = color.RGBA{R: 128, G: 128, B: 128, A: 255} // Gray color for obstacles
 	playerColor      = color.RGBA{R: 255, G: 0, B: 0, A: 255}     // Red color for the player
 )
+
 var levelCompleteMenu *widget.PopUp
 var pauseMenu *widget.PopUp
 var levelsMenu *widget.PopUp
@@ -62,6 +63,7 @@ func MakeGame(levelFilename string) fyne.Window {
 
 	//create level menu
 	levelsMenu = createLevelSelectionMenu(myWindow, &currentLevel)
+	levelsMenu.Hide()
 	myWindow.Canvas().Refresh(myWindow.Content())
 
 	// Handle key inputs for movement
@@ -328,5 +330,7 @@ func createLevelSelectionMenu(myWindow fyne.Window, currentLevel *int) *widget.P
 
 	levelSelectMenu := widget.NewModalPopUp(levelSelectLayout, myWindow.Canvas())
 	levelSelectMenu.Show()
+
+	pauseMenu.Hide()
 	return levelSelectMenu
 }
