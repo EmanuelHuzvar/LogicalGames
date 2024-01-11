@@ -10,7 +10,7 @@ import (
 var (
 	ctx       = context.Background()
 	projectID = "taskmanager-24b1f"
-	keyPath   = "db/authentification.json"
+	keyPath   = "marek-games/PaintFloor/db/authentification.json"
 )
 
 func LoadLevelData(levelID string) ([]int, []int, error) {

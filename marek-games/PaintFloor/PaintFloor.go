@@ -1,7 +1,6 @@
 package PaintFloor
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"fyne.io/fyne/v2"
@@ -10,9 +9,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"image/color"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -34,19 +31,21 @@ var pauseMenu *widget.PopUp
 var levelsMenu *widget.PopUp
 var levelComplete = false
 
-func MakeGame(levelFilename string) fyne.Window {
+func MakeGame() fyne.Window {
 	myApp := app.NewWithID("PaintFloor")
 	myWindow := myApp.NewWindow("Grid Game")
 
-	err := getLevelSize(levelFilename)
+	currentLevel := 1 // Initialize current level
+
+	mapData, err := getLevelData(&currentLevel)
 	if err != nil {
 		return nil
 	}
+
 	gridLayout := container.NewGridWithColumns(gridWidth)
-	currentLevel := 1 // Initialize current level
 
 	// Load level data from the file
-	if err := loadLevelFromFile(levelFilename, gridLayout); err != nil {
+	if err := loadLevelFromData(mapData, gridLayout); err != nil {
 		// Handle the error, maybe load a default level
 	}
 
@@ -55,16 +54,16 @@ func MakeGame(levelFilename string) fyne.Window {
 	levelCompleteMenu.Hide()
 
 	//create pause button
-	pauseButton := makePauseButton(myWindow, &currentLevel)
+	//pauseButton := makePauseButton(myWindow, &currentLevel)
 
 	//create pause menu
-	pauseMenu = createPauseMenu(myWindow, &currentLevel)
-	pauseMenu.Hide()
+	//pauseMenu = createPauseMenu(myWindow, &currentLevel)
+	//pauseMenu.Hide()
 
 	//create level menu
-	levelsMenu = createLevelSelectionMenu(myWindow, &currentLevel)
-	levelsMenu.Hide()
-	myWindow.Canvas().Refresh(myWindow.Content())
+	//levelsMenu = createLevelSelectionMenu(myWindow, &currentLevel)
+	//levelsMenu.Hide()
+	//myWindow.Canvas().Refresh(myWindow.Content())
 
 	// Handle key inputs for movement
 	myWindow.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
@@ -87,11 +86,12 @@ func MakeGame(levelFilename string) fyne.Window {
 	})
 
 	// Use Border Layout to position the pause button at the top
-	topBar := container.NewHBox(pauseButton)
-	content := container.NewBorder(topBar, nil, nil, nil, gridLayout)
+	//topBar := container.NewHBox(pauseButton)
+	//content := container.NewBorder(topBar, nil, nil, nil, gridLayout)
 
-	myWindow.SetContent(content)
+	myWindow.SetContent(gridLayout)
 	myWindow.Resize(fyne.NewSize(float32(gridWidth*cellSize+350), float32(gridHeight*cellSize+350)))
+	myWindow.Canvas().Refresh(myWindow.Content())
 	return myWindow
 }
 
@@ -156,100 +156,43 @@ func checkLevelComplete() bool {
 // return gridWidth,gridth height,error
 // first number in the first line is gridHeight
 // secoond number is gridWidth
-func getLevelSize(filename string) error {
-	file, err := os.Open(filename)
+func getLevelData(currentLevel *int) ([]int, error) {
+	levelID := "lvl" + strconv.Itoa(*currentLevel)
+	dimensions, mapData, err := db.LoadLevelData(levelID)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		fmt.Println("Error loading level data:", err)
+		return nil, err
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	// Read the first line to get the grid size
-	if !scanner.Scan() {
-		fmt.Println(err)
-		return errors.New("failed to read grid size")
-	}
-	sizeStr := scanner.Text()
-	sizeParts := strings.Split(sizeStr, "x")
-	if len(sizeParts) != 2 {
-		fmt.Println(err)
-		return errors.New("invalid grid size format")
-	}
-	gridHeight, err = strconv.Atoi(sizeParts[0])
-	fmt.Println("Number of lines: " + strconv.Itoa(gridHeight))
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	gridWidth, err = strconv.Atoi(sizeParts[1])
-	fmt.Println("Number of collumns: " + strconv.Itoa(gridWidth))
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	return nil
+	gridHeight = dimensions[0]
+	gridWidth = dimensions[1]
+
+	return mapData, nil
 }
 
-func loadLevelFromFile(filename string, gridLayout *fyne.Container) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	if !scanner.Scan() {
-		return errors.New("failed to skip the grid size line")
-	}
-
-	// Initialize the grid with the read size
-	gridLayout.Objects = nil // Clear existing objects in gridLayout
-	grid = make([][]*canvas.Rectangle, gridHeight)
-	for x := range grid {
-		grid[x] = make([]*canvas.Rectangle, gridWidth)
-		for y := range grid[x] {
-			grid[x][y] = canvas.NewRectangle(color.White)
-			grid[x][y].SetMinSize(fyne.NewSize(cellSize, cellSize))
-			grid[x][y].Refresh()
-		}
-	}
-
-	// Process the rest of the file to set up the grid
-	x := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		if len(line) != gridWidth {
-			return errors.New("line length does not match gridWidth")
-		}
-		for y, char := range line {
-			switch char {
-			case '1': // Obstacle
-				grid[x][y].FillColor = obstacleColor
-			case 'S': // Starting position
-				playerX, playerY = x, y
-				grid[x][y].FillColor = playerColor
-			}
-		}
-		x++
-		if x > gridHeight {
-			return errors.New("too many lines for declared gridHeight")
-		}
-	}
-
-	if x != gridHeight {
-		return errors.New("not enough grid data for declared size")
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
+func loadLevelFromData(mapData []int, gridLayout *fyne.Container) error {
+	if len(mapData) != gridHeight*gridWidth {
+		return errors.New("map data size does not match grid dimensions")
 	}
 
 	// Clear existing grid layout
+	grid = make([][]*canvas.Rectangle, gridHeight)
 
-	for x := 0; x < gridHeight; x++ { // Iterate over rows first (height)
-		for y := 0; y < gridWidth; y++ { // Then iterate over columns (width) within each row
+	for x := 0; x < gridHeight; x++ {
+		grid[x] = make([]*canvas.Rectangle, gridWidth)
+		for y := 0; y < gridWidth; y++ {
+			tileValue := mapData[x*gridWidth+y]
+			switch tileValue {
+			case 1: // Obstacle
+				grid[x][y] = canvas.NewRectangle(obstacleColor)
+			case 2: // Player starting position
+				playerX, playerY = x, y
+				grid[x][y] = canvas.NewRectangle(playerColor)
+			default:
+				grid[x][y] = canvas.NewRectangle(color.White)
+			}
+			grid[x][y].SetMinSize(fyne.NewSize(cellSize, cellSize))
+			grid[x][y].Refresh()
 			gridLayout.Add(grid[x][y])
 		}
 	}
@@ -264,15 +207,22 @@ func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout
 		widget.NewLabel("Level Complete!"),
 		widget.NewButton("Next Level", func() {
 			*currentLevel++
-			err := getLevelSize("marek-games/PaintFloor/levels/lvl" + strconv.Itoa(*currentLevel) + ".txt")
+			mapData, err := getLevelData(currentLevel)
+			if err != nil {
+				fmt.Println("Error getting level data:", err)
+				return // Handle the error appropriately
+			}
 
 			gridLayout.Objects = nil
 			gridLayout = container.NewGridWithColumns(gridWidth)
 
-			err = loadLevelFromFile("marek-games/PaintFloor/levels/lvl"+strconv.Itoa(*currentLevel)+".txt", gridLayout)
+			// Load the next level
+			err = loadLevelFromData(mapData, gridLayout)
 			if err != nil {
-				return
-			} // Load the next level
+				fmt.Println("Error loading level from data:", err)
+				return // Handle the error appropriately
+			}
+
 			fmt.Println("leading new level:" + strconv.Itoa(*currentLevel))
 
 			levelComplete = false
@@ -287,50 +237,50 @@ func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout
 	return levelCompleteMenu
 }
 
-func makePauseButton(myWindow fyne.Window, currentLevel *int) *widget.Button {
-	pauseButton := widget.NewButton("Pause", func() {
-		createPauseMenu(myWindow, currentLevel)
-	})
-	return pauseButton
-}
+//func makePauseButton(myWindow fyne.Window, currentLevel *int) *widget.Button {
+//	pauseButton := widget.NewButton("Pause", func() {
+//		createPauseMenu(myWindow, currentLevel)
+//	})
+//	return pauseButton
+//}
 
-func createPauseMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
-	menuContent := container.NewVBox(
-		widget.NewButton("Select Level", func() {
-			createLevelSelectionMenu(myWindow, currentLevel)
-		}),
-		widget.NewButton("Home", func() {
-			// Logic for the Home button
-		}),
-		// Add other buttons or options as needed
-	)
-	pauseMenu := widget.NewModalPopUp(menuContent, myWindow.Canvas())
-	pauseMenu.Show()
-	return pauseMenu
-}
+//func createPauseMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
+//	menuContent := container.NewVBox(
+//		widget.NewButton("Select Level", func() {
+//			createLevelSelectionMenu(myWindow, currentLevel)
+//		}),
+//		widget.NewButton("Home", func() {
+//			// Logic for the Home button
+//		}),
+//		// Add other buttons or options as needed
+//	)
+//	pauseMenu := widget.NewModalPopUp(menuContent, myWindow.Canvas())
+//	pauseMenu.Show()
+//	return pauseMenu
+//}
 
-func createLevelSelectionMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
-	levelSelectLayout := container.NewVBox()
-
-	totalLevels := 5 // Example total number of levels
-	for i := 1; i <= totalLevels; i++ {
-		level := i // Capture loop variable
-		levelButton := widget.NewButton(fmt.Sprintf("Level %d", level), func() {
-			*currentLevel = level
-			err := loadLevelFromFile(fmt.Sprintf("marek-games/PaintFloor/levels/lvl%d.txt", level), myWindow.Content().(*fyne.Container))
-			if err != nil {
-				fmt.Println("Error loading level:", err)
-				return
-			}
-			levelComplete = false
-			myWindow.Canvas().Refresh(myWindow.Content())
-		})
-		levelSelectLayout.Add(levelButton)
-	}
-
-	levelSelectMenu := widget.NewModalPopUp(levelSelectLayout, myWindow.Canvas())
-	levelSelectMenu.Show()
-
-	pauseMenu.Hide()
-	return levelSelectMenu
-}
+//func createLevelSelectionMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
+//	levelSelectLayout := container.NewVBox()
+//
+//	totalLevels := 5 // Example total number of levels
+//	for i := 1; i <= totalLevels; i++ {
+//		level := i // Capture loop variable
+//		levelButton := widget.NewButton(fmt.Sprintf("Level %d", level), func() {
+//			*currentLevel = level
+//			err := loadLevelFromData(fmt.Sprintf("marek-games/PaintFloor/levels/lvl%d.txt", level), myWindow.Content().(*fyne.Container))
+//			if err != nil {
+//				fmt.Println("Error loading level:", err)
+//				return
+//			}
+//			levelComplete = false
+//			myWindow.Canvas().Refresh(myWindow.Content())
+//		})
+//		levelSelectLayout.Add(levelButton)
+//	}
+//
+//	levelSelectMenu := widget.NewModalPopUp(levelSelectLayout, myWindow.Canvas())
+//	levelSelectMenu.Show()
+//
+//	pauseMenu.Hide()
+//	return levelSelectMenu
+//}

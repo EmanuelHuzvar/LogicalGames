@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	PaintFloor.MakeGame("marek-games/PaintFloor/levels/lvl1.txt").ShowAndRun()
+	PaintFloor.MakeGame().ShowAndRun()
 }
