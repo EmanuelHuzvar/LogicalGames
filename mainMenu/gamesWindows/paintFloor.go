@@ -71,9 +71,9 @@ func (ps *PaintFloorScreen) Render() {
 
 	ps.window.SetContent(ContentPaint)
 	SetUpPaintFloorWindow(ps.window, ContentPaint, ps)
+
 	PsWindow = ps
 	ps.window.CenterOnScreen()
-
 }
 
 func MakeGamePaintFloor(levelId string) fyne.Window {
@@ -109,7 +109,7 @@ func MakeGamePaintFloor(levelId string) fyne.Window {
 			movePlayer(string(key.Name))
 			if checkLevelComplete() {
 				levelComplete = true
-				print("level complete")
+				print("level complete from makegame function")
 				// Initialize the level completion menu but don't show it yet
 				levelCompleteMenu.Show()
 				myWindow.Canvas().Refresh(myWindow.Content())
@@ -126,23 +126,26 @@ func MakeGamePaintFloor(levelId string) fyne.Window {
 }
 
 func SetUpPaintFloorWindow(myWindow fyne.Window, gridLayout *fyne.Container, ps *PaintFloorScreen) fyne.Window {
+	print("game created from setup function")
+
 	levelComplete = false
 	myWindow.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
 		if ps.window.Content() == ps.mainMenuContent {
 			return
 		}
-		if levelComplete {
-			MakeWinWindow(ps.app, ps.window, ps.mainMenuContent, "paint")
-		}
+		//if levelComplete {
+		//	MakeWinWindow(ps.app, ps.window, ps.mainMenuContent, "paint")
+		//}
 		gridLayout.Refresh()
 		switch key.Name {
 		case fyne.KeyUp, fyne.KeyDown, fyne.KeyLeft, fyne.KeyRight:
 			movePlayer(string(key.Name))
 			if checkLevelComplete() {
 				levelComplete = true
-				print("level complete")
+				print("level complete from setup function")
 				// Initialize the level completion menu but don't show it yet
 				levelCompleteMenu.Show()
+				MakeWinWindow(ps.app, ps.window, ps.mainMenuContent, "paint")
 				myWindow.Canvas().Refresh(myWindow.Content())
 			}
 		}
@@ -258,6 +261,7 @@ func loadLevelFromData(mapData []int, gridLayout *fyne.Container) error {
 }
 
 func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout *fyne.Container) *widget.PopUp {
+	fmt.Println("Creating level complete menu")
 
 	levelCompleteMenu = widget.NewModalPopUp(container.NewVBox(
 		widget.NewLabel("Level Complete!"),
