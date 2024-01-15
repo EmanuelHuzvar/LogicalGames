@@ -13,7 +13,7 @@ import (
 //go:embed pictures/check.png
 var checkImg []byte
 
-func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasObject) {
+func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasObject, game string) {
 
 	checkImgResource := fyne.NewStaticResource("check.png", checkImg)
 	checkImgWidget := canvas.NewImageFromResource(checkImgResource)
@@ -41,7 +41,7 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 		&winLabel,
 	)
 
-	// Main Content
+	// Main ContentPaint
 	mainContentContainer := container.NewVBox(
 		labelContainer,
 		imgContainer,
@@ -60,9 +60,20 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 		win.Close()
 	}
 	btn.OnTapped = func() {
-		//TODO make it for every game
-		content := makeLevel(increamentLevel(LevelInProggress))
-		btnSetContent(wind, content)
+		if game == "bubble" {
+			content := makeLevel(increamentLevel(LevelInProggress))
+			btnSetContent(wind, content)
+		}
+		if game == "paint" {
+			content := MakeGamePaintFloor(increamentLevel(LevelInProggressPaint))
+			containeris := content.Content()
+			btnSetContent(wind, containeris)
+			SetUpPaintFloorWindow(wind, ContentPaint, PsWindow)
+		}
+		if game == "nonogram" {
+			content := makeLevelNonogram(increamentLevel(LevelInProggressNonogram))
+			btnSetContent(wind, content)
+		}
 
 		win.Close()
 
@@ -76,6 +87,7 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 
 func btnSetContent(win fyne.Window, mainContent fyne.CanvasObject) {
 	win.SetContent(mainContent)
+
 }
 func increamentLevel(level string) string {
 	num, err := strconv.Atoi(level)

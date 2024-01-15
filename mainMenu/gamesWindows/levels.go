@@ -47,6 +47,12 @@ func (ls *LevelScreen) Render() {
 			if ls.game == "nonogram" {
 				NewNonogramScreen(ls.window, ls.app, ls.mainMenuContent, label).Render()
 			}
+			if ls.game == "paint" {
+				NewPaintFloorScreen(ls.window, ls.app, ls.mainMenuContent, label).Render()
+			}
+			if ls.game == "2048" {
+				NewNonogramScreen(ls.window, ls.app, ls.mainMenuContent, label).Render()
+			}
 
 		})
 		btn.Importance = importance
@@ -54,14 +60,14 @@ func (ls *LevelScreen) Render() {
 	}
 
 	// Add buttons with numbers to the grid
-	for i := 1; i <= 50; i++ {
-		if i > 0 && i <= 10 {
+	for i := 1; i <= 15; i++ {
+		if i > 0 && i < 6 {
 			grid.Add(makeButton(fmt.Sprintf("%d", i), lowImportance))
 		}
-		if i > 10 && i <= 30 {
+		if i > 5 && i < 11 {
 			grid.Add(makeButton(fmt.Sprintf("%d", i), mediumImportance))
 		}
-		if i > 30 {
+		if i > 10 {
 			grid.Add(makeButton(fmt.Sprintf("%d", i), highImportance))
 		}
 

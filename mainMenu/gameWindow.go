@@ -35,8 +35,12 @@ func (ps *PlayScreen) Render() {
 		widget.NewButton("Nonogram", func() {
 			gamesWindows.NewLevelScreen(ps.window, ps.app, GameWindowContainer, "nonogram").Render()
 		}),
-		widget.NewButton("Roll Ball", func() { /* Your click handler code */ }),
-		widget.NewButton("Unblock", func() { /* Your click handler code */ }),
+		widget.NewButton("Paint floor", func() {
+			gamesWindows.NewLevelScreen(ps.window, ps.app, GameWindowContainer, "paint").Render()
+		}),
+		widget.NewButton("2048", func() {
+			gamesWindows.NewGame2048Screen(ps.window, ps.app, GameWindowContainer).Render()
+		}),
 	}
 	gameGrid := container.NewAdaptiveGrid(2, gameButtons...)
 	topLeftContainer := container.NewVBox(

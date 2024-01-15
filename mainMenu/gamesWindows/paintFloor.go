@@ -1,7 +1,6 @@
-package PaintFloor
+package gamesWindows
 
 import (
-	"ProjectMarekEmanuel/marek-games/PaintFloor/db"
 	"errors"
 	"fmt"
 	"fyne.io/fyne/v2"
@@ -18,6 +17,26 @@ const (
 	cellSize = 30
 )
 
+type LevelPaintFloor struct {
+	Dimensions []int `firestore:"dimensions"`
+	Map        []int `firestore:"map"`
+}
+type PaintFloorScreen struct {
+	window          fyne.Window
+	app             fyne.App
+	mainMenuContent fyne.CanvasObject
+	level           string
+}
+
+var PsWindow *PaintFloorScreen
+var LevelInProggressPaint string
+var ContentPaint *fyne.Container
+
+func NewPaintFloorScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, level string) *PaintFloorScreen {
+	mainApp = app
+	return &PaintFloorScreen{window: window, app: app, mainMenuContent: mainMenuContent, level: level}
+}
+
 var (
 	grid             [][]*canvas.Rectangle
 	gridHeight       int
@@ -28,45 +47,57 @@ var (
 )
 
 var levelCompleteMenu *widget.PopUp
-var pauseMenu *widget.PopUp
-var levelsMenu *widget.PopUp
 var levelComplete = false
 
-func MakeGame() fyne.Window {
+func (ps *PaintFloorScreen) Render() {
+
+	emptyObject := canvas.NewRectangle(nil)
+	containeris := container.NewVBox(emptyObject)
+	ps.window.SetContent(containeris)
+	levelComplete = false
+	wind = ps.window
+	mainContent = ps.mainMenuContent
+
+	app := app.New()
+
+	menuWindow := app.NewWindow("Logitec App")
+
+	menuWindow.SetOnClosed(func() {
+		app.Quit()
+	})
+
+	cont := MakeGamePaintFloor(ps.level)
+	cont.Canvas()
+
+	ps.window.SetContent(ContentPaint)
+	SetUpPaintFloorWindow(ps.window, ContentPaint, ps)
+	PsWindow = ps
+	ps.window.CenterOnScreen()
+
+}
+
+func MakeGamePaintFloor(levelId string) fyne.Window {
+	levelComplete = false
+	ContentPaint = nil
 	myApp := app.NewWithID("PaintFloor")
-	myWindow := myApp.NewWindow("Grid Game")
+	myWindow := myApp.NewWindow("Griddy Game")
 
-	currentLevel := 1 // Initialize current level
-
+	currentLevel, _ := StringToInt(levelId)
+	LevelInProggressPaint = levelId
+	// Initialize current level
 	mapData, err := getLevelData(&currentLevel)
 	if err != nil {
 		return nil
 	}
-
 	gridLayout := container.NewGridWithColumns(gridWidth)
-
 	// Load level data from the file
 	if err := loadLevelFromData(mapData, gridLayout); err != nil {
 		// Handle the error, maybe load a default level
 	}
-
 	// Function to create and show the level complete menu
 	levelCompleteMenu = createLevelCompleteMenu(myWindow, &currentLevel, gridLayout)
 	levelCompleteMenu.Hide()
 
-	//create pause button
-	//pauseButton := makePauseButton(myWindow, &currentLevel)
-
-	//create pause menu
-	//pauseMenu = createPauseMenu(myWindow, &currentLevel)
-	//pauseMenu.Hide()
-
-	//create level menu
-	//levelsMenu = createLevelSelectionMenu(myWindow, &currentLevel)
-	//levelsMenu.Hide()
-	//myWindow.Canvas().Refresh(myWindow.Content())
-
-	// Handle key inputs for movement
 	myWindow.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
 
 		if levelComplete {
@@ -82,17 +113,41 @@ func MakeGame() fyne.Window {
 				// Initialize the level completion menu but don't show it yet
 				levelCompleteMenu.Show()
 				myWindow.Canvas().Refresh(myWindow.Content())
+
 			}
 		}
 	})
-
-	// Use Border Layout to position the pause button at the top
-	//topBar := container.NewHBox(pauseButton)
-	//content := container.NewBorder(topBar, nil, nil, nil, gridLayout)
+	ContentPaint = gridLayout
 
 	myWindow.SetContent(gridLayout)
 	myWindow.Resize(fyne.NewSize(float32(gridWidth*cellSize+350), float32(gridHeight*cellSize+350)))
 	myWindow.Canvas().Refresh(myWindow.Content())
+	return myWindow
+}
+
+func SetUpPaintFloorWindow(myWindow fyne.Window, gridLayout *fyne.Container, ps *PaintFloorScreen) fyne.Window {
+	levelComplete = false
+	myWindow.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
+		if ps.window.Content() == ps.mainMenuContent {
+			return
+		}
+		if levelComplete {
+			MakeWinWindow(ps.app, ps.window, ps.mainMenuContent, "paint")
+		}
+		gridLayout.Refresh()
+		switch key.Name {
+		case fyne.KeyUp, fyne.KeyDown, fyne.KeyLeft, fyne.KeyRight:
+			movePlayer(string(key.Name))
+			if checkLevelComplete() {
+				levelComplete = true
+				print("level complete")
+				// Initialize the level completion menu but don't show it yet
+				levelCompleteMenu.Show()
+				myWindow.Canvas().Refresh(myWindow.Content())
+			}
+		}
+	})
+
 	return myWindow
 }
 
@@ -159,7 +214,7 @@ func checkLevelComplete() bool {
 // secoond number is gridWidth
 func getLevelData(currentLevel *int) ([]int, error) {
 	levelID := "lvl" + strconv.Itoa(*currentLevel)
-	dimensions, mapData, err := db.LoadLevelData(levelID)
+	dimensions, mapData, err := LoadLevelData(levelID)
 	if err != nil {
 		fmt.Println("Error loading level data:", err)
 		return nil, err
@@ -238,50 +293,10 @@ func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout
 	return levelCompleteMenu
 }
 
-//func makePauseButton(myWindow fyne.Window, currentLevel *int) *widget.Button {
-//	pauseButton := widget.NewButton("Pause", func() {
-//		createPauseMenu(myWindow, currentLevel)
-//	})
-//	return pauseButton
-//}
-
-//func createPauseMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
-//	menuContent := container.NewVBox(
-//		widget.NewButton("Select Level", func() {
-//			createLevelSelectionMenu(myWindow, currentLevel)
-//		}),
-//		widget.NewButton("Home", func() {
-//			// Logic for the Home button
-//		}),
-//		// Add other buttons or options as needed
-//	)
-//	pauseMenu := widget.NewModalPopUp(menuContent, myWindow.Canvas())
-//	pauseMenu.Show()
-//	return pauseMenu
-//}
-
-//func createLevelSelectionMenu(myWindow fyne.Window, currentLevel *int) *widget.PopUp {
-//	levelSelectLayout := container.NewVBox()
-//
-//	totalLevels := 5 // Example total number of levels
-//	for i := 1; i <= totalLevels; i++ {
-//		level := i // Capture loop variable
-//		levelButton := widget.NewButton(fmt.Sprintf("Level %d", level), func() {
-//			*currentLevel = level
-//			err := loadLevelFromData(fmt.Sprintf("marek-games/PaintFloor/levels/lvl%d.txt", level), myWindow.Content().(*fyne.Container))
-//			if err != nil {
-//				fmt.Println("Error loading level:", err)
-//				return
-//			}
-//			levelComplete = false
-//			myWindow.Canvas().Refresh(myWindow.Content())
-//		})
-//		levelSelectLayout.Add(levelButton)
-//	}
-//
-//	levelSelectMenu := widget.NewModalPopUp(levelSelectLayout, myWindow.Canvas())
-//	levelSelectMenu.Show()
-//
-//	pauseMenu.Hide()
-//	return levelSelectMenu
-//}
+func StringToInt(str string) (int, error) {
+	intValue, err := strconv.Atoi(str)
+	if err != nil {
+		return 0, err
+	}
+	return intValue, nil
+}

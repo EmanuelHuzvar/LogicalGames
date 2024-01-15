@@ -1,7 +1,6 @@
-package Game2048
+package gamesWindows
 
 import (
-	"ProjectMarekEmanuel/marek-games/Game2048/structs"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -13,7 +12,46 @@ import (
 	"time"
 )
 
-func MakeGame() fyne.Window {
+type Tile struct {
+	Value  int
+	Merged bool
+}
+
+type GameState struct {
+	Grid     [][]*Tile
+	Score    int
+	GameOver bool
+}
+type Game2048Screen struct {
+	window          fyne.Window
+	app             fyne.App
+	mainMenuContent fyne.CanvasObject
+}
+
+func NewGame2048Screen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject) *Game2048Screen {
+	mainApp = app
+	return &Game2048Screen{window: window, app: app, mainMenuContent: mainMenuContent}
+}
+
+func (g48 *Game2048Screen) Render() {
+	wind = g48.window
+	mainContent = g48.mainMenuContent
+
+	app := app.New()
+
+	menuWindow := app.NewWindow("Logitec App")
+
+	menuWindow.SetOnClosed(func() {
+		app.Quit()
+	})
+
+	content := MakeGameGame2048().Content()
+	g48.window.SetContent(content)
+	g48.window.CenterOnScreen()
+
+}
+
+func MakeGameGame2048() fyne.Window {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("2048")
 
@@ -25,16 +63,16 @@ func MakeGame() fyne.Window {
 	return myWindow
 }
 
-func NewGameState(size int) *structs.GameState {
-	state := &structs.GameState{
-		Grid:     make([][]*structs.Tile, size),
+func NewGameState(size int) *GameState {
+	state := &GameState{
+		Grid:     make([][]*Tile, size),
 		Score:    0,
 		GameOver: false,
 	}
 	for i := range state.Grid {
-		state.Grid[i] = make([]*structs.Tile, size)
+		state.Grid[i] = make([]*Tile, size)
 		for j := range state.Grid[i] {
-			state.Grid[i][j] = &structs.Tile{Value: 0}
+			state.Grid[i][j] = &Tile{Value: 0}
 		}
 	}
 	// Optionally, add two random tiles
@@ -48,7 +86,7 @@ func formatTileValue(value int) string {
 	return fmt.Sprintf("%d", value)
 }
 
-func addRandomTile(state *structs.GameState) {
+func addRandomTile(state *GameState) {
 	rand.NewSource(time.Now().UnixNano())
 	var emptyTiles [][2]int
 	for i, row := range state.Grid {
@@ -66,7 +104,7 @@ func addRandomTile(state *structs.GameState) {
 	}
 }
 
-func renderGrid(window fyne.Window, state *structs.GameState) {
+func renderGrid(window fyne.Window, state *GameState) {
 	gridLayout := container.NewGridWithColumns(len(state.Grid))
 	for i := range state.Grid {
 		for j := range state.Grid[i] {
@@ -150,26 +188,26 @@ func shadeOfBlue(value int) color.Color {
 	}
 }
 
-func setUpKeyboardListener(window fyne.Window, gameState *structs.GameState) {
+func setUpKeyboardListener(window fyne.Window, gameState *GameState) {
 	window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
 		switch event.Name {
 		case fyne.KeyUp:
-			moveTilesUp(gameState)
+			//moveTilesUp(gameState)
 			addRandomTile(gameState)
 			renderGrid(window, gameState)
 
 		case fyne.KeyRight:
-			moveTilesRight(gameState)
+			//moveTilesRight(gameState)
 			addRandomTile(gameState)
 			renderGrid(window, gameState)
 
 		case fyne.KeyDown:
-			moveTilesDown(gameState)
+			//moveTilesDown(gameState)
 			addRandomTile(gameState)
 			renderGrid(window, gameState)
 
 		case fyne.KeyLeft:
-			moveTilesLeft(gameState)
+			//moveTilesLeft(gameState)
 			addRandomTile(gameState)
 			renderGrid(window, gameState)
 		}

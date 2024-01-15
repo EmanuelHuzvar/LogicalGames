@@ -113,7 +113,7 @@ func (b *CircleButton) Tapped(*fyne.PointEvent) {
 		lastClickedButton = b
 	}
 	if checkWinCondition(Bunks) {
-		MakeWinWindow(mainApp, wind, mainContent)
+		MakeWinWindow(mainApp, wind, mainContent, "bubble")
 	}
 }
 

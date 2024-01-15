@@ -1,6 +1,5 @@
 package main
 
-import "ProjectMarekEmanuel/marek-games/Game2048"
 import "ProjectMarekEmanuel/mainMenu"
 
 func main() {

@@ -86,7 +86,7 @@ func MakeOptionWindow(mainApp fyne.App) {
 		supportImgWidget,
 	)
 
-	// Main Content
+	// Main ContentPaint
 	mainContent := container.NewVBox(
 		sunContainer,
 		brightnessSlider,
