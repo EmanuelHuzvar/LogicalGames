@@ -1,0 +1,210 @@
+type customTheme struct{}
+
+var _ fyne.Theme = (*customTheme)(nil)
+
+// 25, 25, 112
+func (c customTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
+	switch name {
+	case theme.ColorNameButton:
+		return color.RGBA{R: 0, G: 0, B: 255, A: 255} // Red buttons
+	case theme.ColorNameHover:
+		return color.RGBA{R: 10, G: 10, B: 200, A: 255}
+	default:
+		return theme.DefaultTheme().Color(name, variant)
+	}
+}
+
+func (c customTheme) Font(style fyne.TextStyle) fyne.Resource {
+	return theme.DefaultTheme().Font(style)
+}
+
+func (c customTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
+	return theme.DefaultTheme().Icon(name)
+}
+
+func (c customTheme) Size(name fyne.ThemeSizeName) float32 {
+	return theme.DefaultTheme().Size(name)
+}
+
+type ColoredTextButton struct {
+	widget.BaseWidget
+	Text     string
+	Color    color.Color
+	OnTapped func()
+}
+
+func NewColoredTextButton(text string, col color.Color, tapped func()) *ColoredTextButton {
+	btn := &ColoredTextButton{
+		Text:     text,
+		Color:    col,
+		OnTapped: tapped,
+	}
+	btn.ExtendBaseWidget(btn)
+	return btn
+}
+
+func (b *ColoredTextButton) CreateRenderer() fyne.WidgetRenderer {
+	label := canvas.NewText(b.Text, b.Color)
+	underlyingButton := widget.NewButton("", b.OnTapped)
+	return &coloredTextButtonRenderer{label: label, button: underlyingButton, btn: b}
+}
+
+type coloredTextButtonRenderer struct {
+	label  *canvas.Text
+	button *widget.Button
+	btn    *ColoredTextButton
+}
+
+func (r *coloredTextButtonRenderer) MinSize() fyne.Size {
+	return r.button.MinSize()
+}
+
+func (r *coloredTextButtonRenderer) Refresh() {
+	r.label.Text = r.btn.Text
+	r.label.Refresh()
+	r.button.Refresh()
+}
+
+func (r *coloredTextButtonRenderer) Layout(size fyne.Size) {
+	r.button.Resize(size)
+	r.label.Resize(size)
+}
+
+func (r *coloredTextButtonRenderer) BackgroundColor() color.Color {
+	return theme.BackgroundColor()
+}
+
+func (r *coloredTextButtonRenderer) Objects() []fyne.CanvasObject {
+	return []fyne.CanvasObject{r.button, r.label}
+}
+
+func (r *coloredTextButtonRenderer) Destroy() {}
+
+
+
+
+
+THIS CODE IS FOR IMAGE IN BUTTONS
+--------------------------------------------------------------
+package buttons
+
+import (
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
+	"image/color"
+)
+
+type ColoredTextButton struct {
+	widget.BaseWidget
+	Text      string
+	TextColor color.Color
+	OnTapped  func()
+	hovered   bool
+	Image     *canvas.Image // New field to hold the background image
+}
+
+func NewColoredTextButton(text string, textColor color.Color, image *canvas.Image, tapped func()) *ColoredTextButton {
+	btn := &ColoredTextButton{
+		Text:      text,
+		TextColor: textColor,
+		OnTapped:  tapped,
+		Image:     image,
+	}
+	btn.ExtendBaseWidget(btn)
+	return btn
+}
+
+func (b *ColoredTextButton) Tapped(*fyne.PointEvent) {
+	if b.OnTapped != nil {
+		b.OnTapped()
+	}
+}
+
+func (b *ColoredTextButton) MouseIn(*fyne.PointEvent) {
+	b.hovered = true
+	b.Refresh()
+}
+
+func (b *ColoredTextButton) MouseOut() {
+	b.hovered = false
+	b.Refresh()
+}
+
+func (b *ColoredTextButton) CreateRenderer() fyne.WidgetRenderer {
+	label := canvas.NewText(b.Text, b.TextColor)
+	label.Alignment = fyne.TextAlignCenter
+
+	// Image is now used as the background instead of a colored rectangle
+	bgImage := b.Image
+	bgImage.FillMode = canvas.ImageFillStretch // Or choose ImageFillOriginal, ImageFillStretch, etc.
+
+	underlyingButton := widget.NewButton("", b.OnTapped)
+	return &coloredTextButtonRenderer{label: label, bg: bgImage, button: underlyingButton, btn: b}
+}
+
+type coloredTextButtonRenderer struct {
+	label  *canvas.Text
+	bg     *canvas.Image
+	button *widget.Button
+	btn    *ColoredTextButton
+}
+
+func (r *coloredTextButtonRenderer) MinSize() fyne.Size {
+	labelMinSize := r.label.MinSize()
+	padding := fyne.NewSize(theme.Padding()*24, theme.Padding()*12)
+	return labelMinSize.Add(padding)
+}
+
+func (r *coloredTextButtonRenderer) Refresh() {
+	r.label.Text = r.btn.Text
+	if r.btn.hovered {
+		// Here you would adjust the label's color or image if necessary
+		// r.bg.Resource = someOtherImage
+		r.label.Color = DarkenColor(r.btn.TextColor)
+	}
+	if r.btn.Image != nil {
+		r.bg.Hidden = false
+		r.bg.Resource = r.btn.Image.Resource
+		r.bg.Refresh()
+	}
+	r.label.Refresh()
+	r.button.Refresh()
+}
+
+func (r *coloredTextButtonRenderer) Layout(size fyne.Size) {
+	r.bg.Resize(size)
+	r.button.Resize(size)
+	r.label.Resize(size)
+}
+
+func (r *coloredTextButtonRenderer) BackgroundColor() color.Color {
+	return theme.BackgroundColor()
+}
+
+func (r *coloredTextButtonRenderer) Objects() []fyne.CanvasObject {
+	// Return the background image first, so it is drawn below the text
+	return []fyne.CanvasObject{r.bg, r.button, r.label}
+}
+
+func (r *coloredTextButtonRenderer) Destroy() {}
+
+// DarkenColor remains unchanged
+func DarkenColor(c color.Color) color.Color {
+	const factor = 0.8
+	r, g, b, a := c.RGBA()
+	return color.RGBA{
+		R: uint8(float32(r>>8) * factor),
+		G: uint8(float32(g>>8) * factor),
+		B: uint8(float32(b>>8) * factor),
+		A: uint8(a >> 8),
+	}
+}
+----------------------------------------
+
+
+
+
+
+
