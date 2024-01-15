@@ -1,8 +1,13 @@
 package main
 
+import "ProjectMarekEmanuel/marek-games/Game2048"
 import "ProjectMarekEmanuel/mainMenu"
 
 func main() {
+	//marek games
+	//PaintFloor.MakeGame().ShowAndRun()
+	//Game2048.MakeGame().ShowAndRun()
+
 	//fields := [][]string{
 	//	{"red", "green", "blue", "yellow"},
 	//	{"cyan", "purple", "magenta", "orange"},
