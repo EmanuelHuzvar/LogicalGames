@@ -18,9 +18,10 @@ type Level struct {
 	Fields [][]string `firestore:"-"`
 }
 type LevelNonogram struct {
-	ID   string `firestore:"id"`
-	Cols []int  `firestore:"cols"`
-	Rows []int  `firestore:"rows"`
+	ID      string   `firestore:"id"`
+	Cols    []int    `firestore:"cols"`
+	Rows    []int    `firestore:"rows"`
+	ColsWin []string `firestore:"winCol"`
 }
 
 func GetLevelByID(levelID string, gameName string) (Level, error) {
@@ -134,13 +135,23 @@ func GetLevelNonogramByID(levelID string) (LevelNonogram, error) {
 	} else {
 		return levelNonogram, fmt.Errorf("expected 'rows' to be a one-dimensional array of integers")
 	}
-
+	if colsWin, ok := data["winCol"].([]interface{}); ok {
+		for _, row := range colsWin {
+			rowInt, ok := row.(string) // Firestore stores integers as int64
+			if !ok {
+				return levelNonogram, fmt.Errorf("type assertion to int64 failed for rows")
+			}
+			levelNonogram.ColsWin = append(levelNonogram.ColsWin, rowInt)
+		}
+	} else {
+		return levelNonogram, fmt.Errorf("expected 'rows' to be a one-dimensional array of integers")
+	}
 	// Assign the document ID to the level ID.
 	levelNonogram.ID = levelID
 
 	return levelNonogram, nil
 }
-func AddLevelForNonogram(levelID string, cols []int, rows []int) error {
+func AddLevelForNonogram(levelID string, cols []int, rows []int, colsWin []string) error {
 	client, err := firestore.NewClient(ctx, projectID, option.WithCredentialsFile(keyPath))
 	if err != nil {
 		return err
@@ -149,8 +160,9 @@ func AddLevelForNonogram(levelID string, cols []int, rows []int) error {
 
 	// Prepare the data to be written to Firestore
 	data := map[string]interface{}{
-		"cols": cols,
-		"rows": rows,
+		"cols":   cols,
+		"rows":   rows,
+		"winCol": colsWin,
 	}
 
 	// Use the Set method to create a new document with the provided level ID
