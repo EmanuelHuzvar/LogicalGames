@@ -28,6 +28,8 @@ type Game2048Screen struct {
 	mainMenuContent fyne.CanvasObject
 }
 
+var gameStateInProgress *GameState
+
 func NewGame2048Screen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject) *Game2048Screen {
 	mainApp = app
 	return &Game2048Screen{window: window, app: app, mainMenuContent: mainMenuContent}
@@ -47,6 +49,7 @@ func (g48 *Game2048Screen) Render() {
 
 	content := MakeGameGame2048().Content()
 	g48.window.SetContent(content)
+	setUpKeyboardListener(g48.window, gameStateInProgress)
 	g48.window.CenterOnScreen()
 
 }
@@ -64,17 +67,20 @@ func MakeGameGame2048() fyne.Window {
 }
 
 func NewGameState(size int) *GameState {
+	gameStateInProgress = nil
 	state := &GameState{
 		Grid:     make([][]*Tile, size),
 		Score:    0,
 		GameOver: false,
 	}
+
 	for i := range state.Grid {
 		state.Grid[i] = make([]*Tile, size)
 		for j := range state.Grid[i] {
 			state.Grid[i][j] = &Tile{Value: 0}
 		}
 	}
+	gameStateInProgress = state
 	// Optionally, add two random tiles
 	return state
 }
@@ -100,7 +106,7 @@ func addRandomTile(state *GameState) {
 	if len(emptyTiles) > 0 {
 		randomIndex := rand.Intn(len(emptyTiles))
 		position := emptyTiles[randomIndex]
-		state.Grid[position[0]][position[1]].Value = 64
+		state.Grid[position[0]][position[1]].Value = 2
 	}
 }
 
@@ -192,25 +198,203 @@ func setUpKeyboardListener(window fyne.Window, gameState *GameState) {
 	window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
 		switch event.Name {
 		case fyne.KeyUp:
-			//moveTilesUp(gameState)
-			addRandomTile(gameState)
-			renderGrid(window, gameState)
-
+			if canMoveUp(gameState) {
+				moveTilesUp(gameState)
+				addRandomTile(gameState)
+				renderGrid(window, gameState)
+			}
 		case fyne.KeyRight:
-			//moveTilesRight(gameState)
-			addRandomTile(gameState)
-			renderGrid(window, gameState)
-
+			if canMoveRight(gameState) {
+				moveTilesRight(gameState)
+				addRandomTile(gameState)
+				renderGrid(window, gameState)
+			}
 		case fyne.KeyDown:
-			//moveTilesDown(gameState)
-			addRandomTile(gameState)
-			renderGrid(window, gameState)
-
+			if canMoveDown(gameState) {
+				moveTilesDown(gameState)
+				addRandomTile(gameState)
+				renderGrid(window, gameState)
+			}
 		case fyne.KeyLeft:
-			//moveTilesLeft(gameState)
-			addRandomTile(gameState)
-			renderGrid(window, gameState)
+			if canMoveLeft(gameState) {
+				moveTilesLeft(gameState)
+				addRandomTile(gameState)
+				renderGrid(window, gameState)
+			}
+		}
+	})
+}
+
+func moveTilesUp(gameState *GameState) {
+	for col := 0; col < len(gameState.Grid[0]); col++ {
+		// First, compress the column by moving non-zero tiles up
+		compressColumnUp(gameState, col)
+
+		// Merge tiles
+		for row := 0; row < len(gameState.Grid)-1; row++ {
+			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row+1][col].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row+1][col].Merged {
+				gameState.Grid[row][col].Value *= 2
+				gameState.Grid[row+1][col].Value = 0
+				gameState.Grid[row][col].Merged = true
+				gameState.Score += gameState.Grid[row][col].Value
+			}
 		}
 
-	})
+		// Compress again after merging
+		compressColumnUp(gameState, col)
+	}
+}
+
+func compressColumnUp(gameState *GameState, col int) {
+	idx := 0
+	for row := 0; row < len(gameState.Grid); row++ {
+		if gameState.Grid[row][col].Value != 0 {
+			gameState.Grid[idx][col].Value = gameState.Grid[row][col].Value
+			gameState.Grid[idx][col].Merged = false
+			if idx != row {
+				gameState.Grid[row][col].Value = 0
+			}
+			idx++
+		}
+	}
+}
+
+func moveTilesDown(gameState *GameState) {
+	for col := 0; col < len(gameState.Grid[0]); col++ {
+		// First, compress the column by moving non-zero tiles down
+		compressColumnDown(gameState, col)
+
+		// Merge tiles from bottom up
+		for row := len(gameState.Grid) - 1; row > 0; row-- {
+			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row-1][col].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row-1][col].Merged {
+				gameState.Grid[row][col].Value *= 2
+				gameState.Grid[row-1][col].Value = 0
+				gameState.Grid[row][col].Merged = true
+				gameState.Score += gameState.Grid[row][col].Value
+			}
+		}
+
+		// Compress again after merging
+		compressColumnDown(gameState, col)
+	}
+}
+
+func compressColumnDown(gameState *GameState, col int) {
+	idx := len(gameState.Grid) - 1
+	for row := len(gameState.Grid) - 1; row >= 0; row-- {
+		if gameState.Grid[row][col].Value != 0 {
+			gameState.Grid[idx][col].Value = gameState.Grid[row][col].Value
+			gameState.Grid[idx][col].Merged = false
+			if idx != row {
+				gameState.Grid[row][col].Value = 0
+			}
+			idx--
+		}
+	}
+}
+
+func moveTilesLeft(gameState *GameState) {
+	for row := 0; row < len(gameState.Grid); row++ {
+		compressRowLeft(gameState, row)
+
+		for col := 0; col < len(gameState.Grid[row])-1; col++ {
+			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row][col+1].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row][col+1].Merged {
+				gameState.Grid[row][col].Value *= 2
+				gameState.Grid[row][col+1].Value = 0
+				gameState.Grid[row][col].Merged = true
+				gameState.Score += gameState.Grid[row][col].Value
+			}
+		}
+
+		compressRowLeft(gameState, row)
+	}
+}
+
+func compressRowLeft(gameState *GameState, row int) {
+	idx := 0
+	for col := 0; col < len(gameState.Grid[row]); col++ {
+		if gameState.Grid[row][col].Value != 0 {
+			gameState.Grid[row][idx].Value = gameState.Grid[row][col].Value
+			gameState.Grid[row][idx].Merged = false
+			if idx != col {
+				gameState.Grid[row][col].Value = 0
+			}
+			idx++
+		}
+	}
+}
+
+func moveTilesRight(gameState *GameState) {
+	for row := 0; row < len(gameState.Grid); row++ {
+		compressRowRight(gameState, row)
+
+		for col := len(gameState.Grid[row]) - 1; col > 0; col-- {
+			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row][col-1].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row][col-1].Merged {
+				gameState.Grid[row][col].Value *= 2
+				gameState.Grid[row][col-1].Value = 0
+				gameState.Grid[row][col].Merged = true
+				gameState.Score += gameState.Grid[row][col].Value
+			}
+		}
+
+		compressRowRight(gameState, row)
+	}
+}
+
+func compressRowRight(gameState *GameState, row int) {
+	idx := len(gameState.Grid[row]) - 1
+	for col := len(gameState.Grid[row]) - 1; col >= 0; col-- {
+		if gameState.Grid[row][col].Value != 0 {
+			gameState.Grid[row][idx].Value = gameState.Grid[row][col].Value
+			gameState.Grid[row][idx].Merged = false
+			if idx != col {
+				gameState.Grid[row][col].Value = 0
+			}
+			idx--
+		}
+	}
+}
+
+func canMoveLeft(gameState *GameState) bool {
+	for row := 0; row < len(gameState.Grid); row++ {
+		for col := 1; col < len(gameState.Grid[row]); col++ {
+			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row][col-1].Value == 0 || gameState.Grid[row][col-1].Value == gameState.Grid[row][col].Value) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func canMoveRight(gameState *GameState) bool {
+	for row := 0; row < len(gameState.Grid); row++ {
+		for col := 0; col < len(gameState.Grid[row])-1; col++ {
+			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row][col+1].Value == 0 || gameState.Grid[row][col+1].Value == gameState.Grid[row][col].Value) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func canMoveUp(gameState *GameState) bool {
+	for col := 0; col < len(gameState.Grid[0]); col++ {
+		for row := 1; row < len(gameState.Grid); row++ {
+			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row-1][col].Value == 0 || gameState.Grid[row-1][col].Value == gameState.Grid[row][col].Value) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func canMoveDown(gameState *GameState) bool {
+	for col := 0; col < len(gameState.Grid[0]); col++ {
+		for row := 0; row < len(gameState.Grid)-1; row++ {
+			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row+1][col].Value == 0 || gameState.Grid[row+1][col].Value == gameState.Grid[row][col].Value) {
+				return true
+			}
+		}
+	}
+	return false
 }
