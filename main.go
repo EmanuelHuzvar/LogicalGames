@@ -1,6 +1,8 @@
 package main
 
-import "ProjectMarekEmanuel/mainMenu"
+import (
+	"ProjectMarekEmanuel/mainMenu"
+)
 
 func main() {
 	//marek games
@@ -17,12 +19,11 @@ func main() {
 	//	{"yellow", "blue", "green", "red"},
 	//	{"orange", "magenta", "purple", "cyan"},
 	//}
-	//levelID := "2"
-	//cols := []int{2, 3, 2, 1}
-	//rows := []int{1, 2, 4, 1}
-	//
-	//// Call the AddLevelForNonogram method with the example values
-	//err := gamesWindows.AddLevelForNonogram(levelID, cols, rows)
+	//levelID := "5"
+	//cols := []int{3, 11, 3}
+	//rows := []int{3, 0, 3}
+	//winCil := []string{"101", "101", "101"}
+	//err := gamesWindows.AddLevelForNonogram(levelID, cols, rows, winCil)
 	//if err != nil {
 	//	fmt.Printf("Error adding level for Nonogram: %s\n", err)
 	//} else {

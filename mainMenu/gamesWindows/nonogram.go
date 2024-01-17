@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"golang.org/x/image/colornames"
 	"image/color"
+	"strconv"
 )
 
 type CellState int
@@ -26,8 +27,10 @@ const (
 var gridSize int
 var colsNumbers []int
 var rowsNumbers []int
+var colsWinNumbers []int
+var rowWinNumbers []int
 var cellsOfNonogram []*NonogramCell
-
+var cellsOfNonogramWin []*NonogramCell
 var RadioBtn *customButtons.CustomRadioButton
 
 type NonogramCell struct {
@@ -64,6 +67,9 @@ func (c *NonogramCell) Tapped(event *fyne.PointEvent) {
 	if RadioBtn.Selected == "x" && c.state != 1 {
 		c.state = 1
 		c.Refresh()
+		if checkWinConditionNonogram(cellsOfNonogram, cellsOfNonogramWin) {
+			MakeWinWindow(mainApp, wind, mainContent, "nonogram")
+		}
 		return
 	}
 	if RadioBtn.Selected == "square" && c.state == 2 {
@@ -74,6 +80,9 @@ func (c *NonogramCell) Tapped(event *fyne.PointEvent) {
 	if RadioBtn.Selected == "square" && c.state != 2 {
 		c.state = 2
 		c.Refresh()
+		if checkWinConditionNonogram(cellsOfNonogram, cellsOfNonogramWin) {
+			MakeWinWindow(mainApp, wind, mainContent, "nonogram")
+		}
 		return
 	}
 
@@ -201,8 +210,9 @@ func (ns *NonogramScreen) Render() {
 }
 
 func makeLevelNonogram(level string) *fyne.Container {
-	gird := createNonogramGridWithClues(level)
 
+	gird := createNonogramGridWithClues(level)
+	LevelInProggressNonogram = level
 	return gird
 
 }
@@ -210,7 +220,8 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 
 	colsNumbers = nil
 	rowsNumbers = nil
-
+	colsWinNumbers = nil
+	cellsOfNonogramWin = nil
 	level, _ := GetLevelNonogramByID(nonogramLevel)
 
 	cols := len(level.Cols)
@@ -219,6 +230,11 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 
 	colsNumbers = level.Cols
 	rowsNumbers = level.Rows
+
+	colsWinNumbers, _ = binaryStringsToInts(level.ColsWin)
+	cellsOfNonogramWin = createWinConditionGrid(gridSize, colsWinNumbers)
+
+	fmt.Println(level.ColsWin)
 	// Create the grid container with extra space for clues
 	grid := container.New(layout.NewGridLayoutWithColumns(cols + 1))
 
@@ -274,127 +290,50 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 	return grid
 }
 
-func isValidMove(row, col, gridSize int, cellsOfNonogram []*NonogramCell, rowsNumbers, colsNumbers []int) bool {
-	// Check if the row can still satisfy the row clue after this move
-	if !canSatisfyClue(extractLine(cellsOfNonogram, row, gridSize, true), rowsNumbers[row]) {
-		return false
-	}
-
-	// Check if the column can still satisfy the column clue after this move
-	if !canSatisfyClue(extractLine(cellsOfNonogram, col, gridSize, false), colsNumbers[col]) {
-		return false
-	}
-
-	return true
-}
-
-// canSatisfyClue checks if a line (row or column) can still potentially satisfy the clues given.
-func canSatisfyClue(line []*NonogramCell, clue int) bool {
-	// Convert clue to a slice of individual numbers if greater than 10.
-	clues := decodeClues(clue)
-
-	// Try to place the clues in every possible way in the line and check if any configuration is valid.
-	for i := 0; i <= len(line)-len(clues); i++ {
-		if isValidConfiguration(line, clues, i) {
-			return true
+func binaryStringsToInts(binStrs []string) ([]int, error) {
+	var ints []int
+	for _, binStr := range binStrs {
+		num, err := strconv.ParseInt(binStr, 2, 64)
+		if err != nil {
+			// Handle the error in case the binary number is not valid.
+			return nil, fmt.Errorf("failed to parse binary string %s to int: %v", binStr, err)
 		}
+		ints = append(ints, int(num))
 	}
-	return false
+	return ints, nil
 }
+func createWinConditionGrid(gridSize int, colsWinNumbers []int) []*NonogramCell {
+	cellsOfNonogramWin := make([]*NonogramCell, gridSize*gridSize)
+	for colIndex, colWinNum := range colsWinNumbers {
+		for rowIndex := 0; rowIndex < gridSize; rowIndex++ {
+			// Calculate the index of the cell in the cellsOfNonogramWin slice
+			cellIndex := rowIndex*gridSize + colIndex
 
-// isValidConfiguration checks if the clues can be placed starting at a specific index in the line.
-func isValidConfiguration(line []*NonogramCell, clues []int, start int) bool {
-	clueIndex := 0
-	for i := start; i < len(line); i++ {
-		if clues[clueIndex] == 0 {
-			// Move to the next clue and skip a space for separation.
-			clueIndex++
-			if clueIndex >= len(clues) {
-				break // All clues are placed.
+			// Create a new NonogramCell for the win condition grid
+			cell := NewNonogramCell(colornames.White, colornames.Black, strokeWidthNanogram)
+			cell.Pos = [][]int{{
+
+				rowIndex, colIndex}}
+
+			// Check the bit to determine if the cell should be filled
+			if (colWinNum>>(gridSize-1-rowIndex))&1 != 0 {
+				cell.state = StateMarked
+			} else {
+				// If the bit is not set, so the cell is either empty or marked
+				cell.state = StateEmpty // or StateMarked based on your win condition logic
 			}
-			i++ // Skip a space for separation.
-		} else if line[i].state == StateEmpty || line[i].state == StateFilled {
-			// A black cell is found or can be placed here.
-			clues[clueIndex]--
-		} else {
-			// A white cell is found, which is not allowed in a block.
-			return false
+
+			// Place the new cell in the cellsOfNonogramWin array
+			cellsOfNonogramWin[cellIndex] = cell
 		}
 	}
-
-	// Check if all clues are placed.
-	for _, remaining := range clues[clueIndex:] {
-		if remaining != 0 {
-			return false // Not all clues are placed.
-		}
-	}
-
-	return true // The configuration is valid.
+	return cellsOfNonogramWin
 }
-
-func decodeClues(clue int) []int {
-	if clue > 10 {
-		return []int{clue / 10, clue % 10}
-	}
-	return []int{clue}
-}
-func extractLine(cells []*NonogramCell, index, gridSize int, isRow bool) []*NonogramCell {
-	line := make([]*NonogramCell, gridSize)
-	for i := 0; i < gridSize; i++ {
-		if isRow {
-			line[i] = cells[index*gridSize+i]
-		} else {
-			line[i] = cells[i*gridSize+index]
-		}
-	}
-	return line
-}
-
-func checkWinConditionNonogram(gridSize int, cellsOfNonogram []*NonogramCell, rowsNumbers, colsNumbers []int) bool {
-	for rowIndex := 0; rowIndex < gridSize; rowIndex++ {
-		if !lineSatisfiesClue(extractLine(cellsOfNonogram, rowIndex, gridSize, true), rowsNumbers[rowIndex]) {
-			return false
-		}
-	}
-	for colIndex := 0; colIndex < gridSize; colIndex++ {
-		if !lineSatisfiesClue(extractLine(cellsOfNonogram, colIndex, gridSize, false), colsNumbers[colIndex]) {
+func checkWinConditionNonogram(cellsOfNonogram []*NonogramCell, cellsOfNonogramWin []*NonogramCell) bool {
+	for i, cell := range cellsOfNonogram {
+		if cell.state != cellsOfNonogramWin[i].state {
 			return false
 		}
 	}
 	return true
-}
-
-func lineSatisfiesClue(line []*NonogramCell, clue int) bool {
-	clues := decodeClues(clue)
-	currentClueIndex := 0
-	count := 0
-	for i, cell := range line {
-		if cell.state == StateFilled {
-			count++
-			if currentClueIndex >= len(clues) || count > clues[currentClueIndex] {
-				// Too many filled cells or does not match the clue.
-				return false
-			}
-		} else {
-			if count > 0 {
-				if count != clues[currentClueIndex] { // The segment of filled cells does not match the size of the current clue.
-					return false
-				}
-				// Move to the next clue.
-				currentClueIndex++
-				count = 0 // Reset count for the next segment.
-			}
-		}
-
-		// If we reach the end of the line, we check the last segment.
-		if i == len(line)-1 && count > 0 {
-			if count != clues[currentClueIndex] {
-				return false
-			}
-			currentClueIndex++
-		}
-	}
-
-	// Check if all clues have been accounted for. There should be no remaining clues.
-	return currentClueIndex == len(clues)
 }
