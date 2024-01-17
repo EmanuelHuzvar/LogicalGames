@@ -26,6 +26,8 @@ type Game2048Screen struct {
 	window          fyne.Window
 	app             fyne.App
 	mainMenuContent fyne.CanvasObject
+	scoreLabel      *canvas.Text
+	gridLayout      *fyne.Container
 }
 
 var gameStateInProgress *GameState
@@ -47,21 +49,28 @@ func (g48 *Game2048Screen) Render() {
 		app.Quit()
 	})
 
-	content := MakeGameGame2048().Content()
+	content := MakeGameGame2048(g48).Content()
 	g48.window.SetContent(content)
-	setUpKeyboardListener(g48.window, gameStateInProgress)
+	setUpKeyboardListener(g48.window, g48, gameStateInProgress)
 	g48.window.CenterOnScreen()
 
 }
 
-func MakeGameGame2048() fyne.Window {
+func MakeGameGame2048(g48 *Game2048Screen) fyne.Window {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("2048")
 
 	gameState := NewGameState(4) // Assuming a 4x4 grid for 2048
 	addRandomTile(gameState)
+	//test score label
+	g48.scoreLabel = canvas.NewText(fmt.Sprintf("Score: %d", gameState.Score), color.Black)
+	g48.scoreLabel.TextStyle.Bold = true
 
-	renderGrid(myWindow, gameState)
+	g48.gridLayout = createGridContainer(gameState)
+	renderGrid(gameState, g48)
+
+	verticalLayout := container.NewVBox(g48.scoreLabel, g48.gridLayout)
+	myWindow.SetContent(verticalLayout)
 
 	return myWindow
 }
@@ -110,7 +119,7 @@ func addRandomTile(state *GameState) {
 	}
 }
 
-func renderGrid(window fyne.Window, state *GameState) {
+func renderGrid(state *GameState, g48 *Game2048Screen) {
 	gridLayout := container.NewGridWithColumns(len(state.Grid))
 	for i := range state.Grid {
 		for j := range state.Grid[i] {
@@ -126,7 +135,10 @@ func renderGrid(window fyne.Window, state *GameState) {
 			gridLayout.Add(overlay)
 		}
 	}
-	window.SetContent(gridLayout)
+	g48.gridLayout = gridLayout
+	g48.gridLayout.Refresh()
+	g48.scoreLabel.Text = fmt.Sprintf("Score: %d", state.Score)
+	g48.scoreLabel.Refresh()
 }
 
 func tileColor(value int) color.Color {
@@ -211,32 +223,40 @@ func shadeOfBlue(value int) color.Color {
 	}
 }
 
-func setUpKeyboardListener(window fyne.Window, gameState *GameState) {
-	window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
+func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *GameState) {
+	g48.window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
 		switch event.Name {
 		case fyne.KeyUp:
 			if canMoveUp(gameState) {
 				moveTilesUp(gameState)
 				addRandomTile(gameState)
-				renderGrid(window, gameState)
+				renderGrid(gameState, g48)
+				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 		case fyne.KeyRight:
 			if canMoveRight(gameState) {
 				moveTilesRight(gameState)
 				addRandomTile(gameState)
-				renderGrid(window, gameState)
+				renderGrid(gameState, g48)
+				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 		case fyne.KeyDown:
 			if canMoveDown(gameState) {
 				moveTilesDown(gameState)
 				addRandomTile(gameState)
-				renderGrid(window, gameState)
+				renderGrid(gameState, g48)
+				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 		case fyne.KeyLeft:
 			if canMoveLeft(gameState) {
 				moveTilesLeft(gameState)
 				addRandomTile(gameState)
-				renderGrid(window, gameState)
+				renderGrid(gameState, g48)
+				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 		}
 	})
@@ -250,10 +270,12 @@ func moveTilesUp(gameState *GameState) {
 		// Merge tiles
 		for row := 0; row < len(gameState.Grid)-1; row++ {
 			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row+1][col].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row+1][col].Merged {
+				mergedValue := gameState.Grid[row][col].Value * 2
 				gameState.Grid[row][col].Value *= 2
 				gameState.Grid[row+1][col].Value = 0
 				gameState.Grid[row][col].Merged = true
-				gameState.Score += gameState.Grid[row][col].Value
+				// Update score based on merged value
+				gameState.Score += mergedValue * 10
 			}
 		}
 
@@ -284,10 +306,11 @@ func moveTilesDown(gameState *GameState) {
 		// Merge tiles from bottom up
 		for row := len(gameState.Grid) - 1; row > 0; row-- {
 			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row-1][col].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row-1][col].Merged {
+				mergedValue := gameState.Grid[row][col].Value * 2
 				gameState.Grid[row][col].Value *= 2
 				gameState.Grid[row-1][col].Value = 0
 				gameState.Grid[row][col].Merged = true
-				gameState.Score += gameState.Grid[row][col].Value
+				gameState.Score += mergedValue * 10
 			}
 		}
 
@@ -316,10 +339,11 @@ func moveTilesLeft(gameState *GameState) {
 
 		for col := 0; col < len(gameState.Grid[row])-1; col++ {
 			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row][col+1].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row][col+1].Merged {
+				mergedValue := gameState.Grid[row][col].Value * 2
 				gameState.Grid[row][col].Value *= 2
 				gameState.Grid[row][col+1].Value = 0
 				gameState.Grid[row][col].Merged = true
-				gameState.Score += gameState.Grid[row][col].Value
+				gameState.Score += mergedValue * 10
 			}
 		}
 
@@ -347,15 +371,17 @@ func moveTilesRight(gameState *GameState) {
 
 		for col := len(gameState.Grid[row]) - 1; col > 0; col-- {
 			if gameState.Grid[row][col].Value != 0 && gameState.Grid[row][col].Value == gameState.Grid[row][col-1].Value && !gameState.Grid[row][col].Merged && !gameState.Grid[row][col-1].Merged {
+				mergedValue := gameState.Grid[row][col].Value * 2
 				gameState.Grid[row][col].Value *= 2
 				gameState.Grid[row][col-1].Value = 0
 				gameState.Grid[row][col].Merged = true
-				gameState.Score += gameState.Grid[row][col].Value
+				gameState.Score += mergedValue * 10
 			}
 		}
 
 		compressRowRight(gameState, row)
 	}
+
 }
 
 func compressRowRight(gameState *GameState, row int) {
@@ -414,4 +440,25 @@ func canMoveDown(gameState *GameState) bool {
 		}
 	}
 	return false
+}
+
+func createGridContainer(state *GameState) *fyne.Container {
+	gridLayout := container.NewGridWithColumns(len(state.Grid)) // Assuming a square grid
+
+	for i := range state.Grid {
+		for j := range state.Grid[i] {
+			tile := state.Grid[i][j]
+			rect := canvas.NewRectangle(tileColor(tile.Value))
+			rect.SetMinSize(fyne.NewSize(75, 75)) // Set the size of the tile
+
+			label := canvas.NewText(formatTileValue(tile.Value), color.Black)
+			label.TextStyle.Bold = true
+			label.Alignment = fyne.TextAlignCenter
+
+			overlay := container.NewStack(rect, label)
+			gridLayout.Add(overlay)
+		}
+	}
+
+	return gridLayout
 }
