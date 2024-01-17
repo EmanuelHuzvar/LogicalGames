@@ -35,6 +35,8 @@ var gameStateInProgress *GameState
 
 func NewGame2048Screen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, mainMenuWindow fyne.CanvasObject) *Game2048Screen {
 	mainApp = app
+	window.SetFixedSize(true)
+	window.Resize(fyne.NewSize(50, 50))
 	return &Game2048Screen{window: window, app: app, mainMenuContent: mainMenuContent, mainMenuWindow: mainMenuWindow}
 }
 
@@ -72,7 +74,6 @@ func MakeGameGame2048(g48 *Game2048Screen) fyne.Window {
 
 	verticalLayout := container.NewVBox(g48.scoreLabel, g48.gridLayout)
 	myWindow.SetContent(verticalLayout)
-
 	return myWindow
 }
 
@@ -122,11 +123,12 @@ func addRandomTile(state *GameState) {
 
 func renderGrid(state *GameState, g48 *Game2048Screen) {
 	gridLayout := container.NewGridWithColumns(len(state.Grid))
+	tileSize := 100
 	for i := range state.Grid {
 		for j := range state.Grid[i] {
 			tile := state.Grid[i][j]
 			rect := canvas.NewRectangle(tileColor(tile.Value))
-			rect.SetMinSize(fyne.NewSize(75, 75)) // Set the size of the tile
+			rect.SetMinSize(fyne.NewSize(float32(tileSize), float32(tileSize))) // Set the size of the tile
 
 			label := canvas.NewText(formatTileValue(tile.Value), color.Black)
 			label.TextStyle.Bold = true
@@ -443,14 +445,37 @@ func canMoveDown(gameState *GameState) bool {
 	return false
 }
 
+//	func createGridContainer(state *GameState) *fyne.Container {
+//		gridLayout := container.NewGridWithColumns(len(state.Grid)) // Assuming a square grid
+//
+//		for i := range state.Grid {
+//			for j := range state.Grid[i] {
+//				tile := state.Grid[i][j]
+//				rect := canvas.NewRectangle(tileColor(tile.Value))
+//				rect.SetMinSize(fyne.NewSize(75, 75)) // Set the size of the tile
+//
+//				label := canvas.NewText(formatTileValue(tile.Value), color.Black)
+//				label.TextStyle.Bold = true
+//				label.Alignment = fyne.TextAlignCenter
+//
+//				overlay := container.NewStack(rect, label)
+//				gridLayout.Add(overlay)
+//			}
+//		}
+//
+//		return gridLayout
+//	}
 func createGridContainer(state *GameState) *fyne.Container {
-	gridLayout := container.NewGridWithColumns(len(state.Grid)) // Assuming a square grid
+	gridSize := len(state.Grid)
+	tileSize := 100 // You need to define calculateTileSize
+
+	gridLayout := container.NewGridWithColumns(gridSize)
 
 	for i := range state.Grid {
 		for j := range state.Grid[i] {
 			tile := state.Grid[i][j]
 			rect := canvas.NewRectangle(tileColor(tile.Value))
-			rect.SetMinSize(fyne.NewSize(75, 75)) // Set the size of the tile
+			rect.SetMinSize(fyne.NewSize(float32(tileSize), float32(tileSize)))
 
 			label := canvas.NewText(formatTileValue(tile.Value), color.Black)
 			label.TextStyle.Bold = true
