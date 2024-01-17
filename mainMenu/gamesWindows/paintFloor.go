@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"image/color"
 	"strconv"
@@ -86,14 +87,17 @@ func MakeGamePaintFloor(levelId string) fyne.Window {
 	LevelInProggressPaint = levelId
 	// Initialize current level
 	mapData, err := getLevelData(&currentLevel)
+
 	if err != nil {
 		return nil
 	}
 	gridLayout := container.NewGridWithColumns(gridWidth)
 	// Load level data from the file
-	if err := loadLevelFromData(mapData, gridLayout); err != nil {
+	erroris, gridLayout := loadLevelFromData(mapData, gridLayout)
+	if erroris != nil {
 		// Handle the error, maybe load a default level
 	}
+
 	// Function to create and show the level complete menu
 	levelCompleteMenu = createLevelCompleteMenu(myWindow, &currentLevel, gridLayout)
 	levelCompleteMenu.Hide()
@@ -229,9 +233,23 @@ func getLevelData(currentLevel *int) ([]int, error) {
 	return mapData, nil
 }
 
-func loadLevelFromData(mapData []int, gridLayout *fyne.Container) error {
+func loadLevelFromData(mapData []int, gridLayout *fyne.Container) (error, *fyne.Container) {
+	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
+	backButton := widget.NewButtonWithIcon("", BackBtnImgResource, func() {
+		wind.SetContent(mainContent)
+	})
+	topLeftContainer := container.NewVBox(
+		backButton,
+		layout.NewSpacer(),
+		layout.NewSpacer(),
+	)
+	finalContainer := container.NewHBox(
+
+		topLeftContainer,
+		layout.NewSpacer(),
+	)
 	if len(mapData) != gridHeight*gridWidth {
-		return errors.New("map data size does not match grid dimensions")
+		return errors.New("map data size does not match grid dimensions"), finalContainer
 	}
 
 	// Clear existing grid layout
@@ -250,14 +268,22 @@ func loadLevelFromData(mapData []int, gridLayout *fyne.Container) error {
 			default:
 				grid[x][y] = canvas.NewRectangle(color.White)
 			}
+
 			grid[x][y].SetMinSize(fyne.NewSize(cellSize, cellSize))
 			grid[x][y].Refresh()
 			gridLayout.Add(grid[x][y])
+
 		}
 	}
 
+	containerToReturn := container.NewStack(
+		gridLayout,
+		finalContainer,
+	)
+
+	gridLayout = containerToReturn
 	gridLayout.Refresh() // Refresh the layout to update the UI
-	return nil
+	return nil, gridLayout
 }
 
 func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout *fyne.Container) *widget.PopUp {
@@ -277,7 +303,7 @@ func createLevelCompleteMenu(myWindow fyne.Window, currentLevel *int, gridLayout
 			gridLayout = container.NewGridWithColumns(gridWidth)
 
 			// Load the next level
-			err = loadLevelFromData(mapData, gridLayout)
+			err, _ = loadLevelFromData(mapData, gridLayout)
 			if err != nil {
 				fmt.Println("Error loading level from data:", err)
 				return // Handle the error appropriately

@@ -195,13 +195,8 @@ func (ns *NonogramScreen) Render() {
 	menuWindow.SetOnClosed(func() {
 		app.Quit()
 	})
-	backButton := widget.NewButton("Back", func() {
-		ns.window.SetContent(LevelContent)
-	})
 
-	//would get from db rows and cols
 	cont := makeLevelNonogram(ns.level)
-	cont.Add(backButton)
 
 	ns.window.SetContent(cont)
 
@@ -217,7 +212,10 @@ func makeLevelNonogram(level string) *fyne.Container {
 
 }
 func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
-
+	imgResource := fyne.NewStaticResource("backgroundimgnonogram.png", backgroundImgNonogram)
+	backgroundImage := canvas.NewImageFromResource(imgResource)
+	backgroundImage.FillMode = canvas.ImageFillStretch
+	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
 	colsNumbers = nil
 	rowsNumbers = nil
 	colsWinNumbers = nil
@@ -230,6 +228,19 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 
 	colsNumbers = level.Cols
 	rowsNumbers = level.Rows
+	backButton := widget.NewButtonWithIcon("", BackBtnImgResource, func() {
+		wind.SetContent(mainContent)
+	})
+	topLeftContainer := container.NewVBox(
+		backButton,
+		layout.NewSpacer(),
+		layout.NewSpacer(),
+	)
+	finalContainer := container.NewHBox(
+
+		topLeftContainer,
+		layout.NewSpacer(),
+	)
 
 	colsWinNumbers, _ = binaryStringsToInts(level.ColsWin)
 	cellsOfNonogramWin = createWinConditionGrid(gridSize, colsWinNumbers)
@@ -242,13 +253,14 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 	for i := 0; i <= cols; i++ {
 		if i == 0 {
 			// First cell is empty because it's the corner of the clues
-			grid.Add(widget.NewLabel(""))
+			grid.Add(finalContainer)
 		} else {
 
 			if colsNumbers[i-1] > 10 {
 				firstNum := colsNumbers[i-1] / 10
 				secondNum := colsNumbers[i-1] % 10
-				grid.Add(widget.NewLabel(fmt.Sprintf("%d\n%d", firstNum, secondNum)))
+				label := widget.NewLabel(fmt.Sprintf("%d\n%d", firstNum, secondNum))
+				grid.Add(label)
 			} else {
 				grid.Add(widget.NewLabel(fmt.Sprintf("%d", colsNumbers[i-1])))
 			}
@@ -281,13 +293,20 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 
 		}
 	}
+
 	radio := customButtons.NewCustomRadioButton()
 
 	grid.Add(radio)
+
 	radio.Selected = "x"
 	radio.Refresh()
 	RadioBtn = radio
-	return grid
+	backgroundImage.Translucency = 0.90
+	combinedContainer := container.NewStack(
+		backgroundImage,
+		grid,
+	)
+	return combinedContainer
 }
 
 func binaryStringsToInts(binStrs []string) ([]int, error) {

@@ -1,11 +1,15 @@
 package gamesWindows
 
 import (
+	"ProjectMarekEmanuel/mainMenu/gamesWindows/customButtons"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"golang.org/x/image/colornames"
+	"image/color"
 )
 
 var lowImportance = widget.HighImportance
@@ -17,10 +21,11 @@ type LevelScreen struct {
 	app             fyne.App
 	game            string
 	mainMenuContent fyne.CanvasObject
+	mainMenuWindow  fyne.CanvasObject
 }
 
-func NewLevelScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, game string) *LevelScreen {
-	return &LevelScreen{window: window, app: app, mainMenuContent: mainMenuContent, game: game}
+func NewLevelScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, game string, mainMenuWindow fyne.CanvasObject) *LevelScreen {
+	return &LevelScreen{window: window, app: app, mainMenuContent: mainMenuContent, game: game, mainMenuWindow: mainMenuWindow}
 }
 
 var CurrentLevel string
@@ -28,6 +33,9 @@ var CurrentLevel string
 var LevelContent fyne.CanvasObject
 
 func (ls *LevelScreen) Render() {
+
+	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
+
 	app := app.New()
 	myWindow := app.NewWindow("Logitec App")
 	myWindow.SetOnClosed(func() {
@@ -37,8 +45,8 @@ func (ls *LevelScreen) Render() {
 	grid := container.NewGridWithColumns(5) // Create a grid with 5 columns
 
 	// Function to create a new button that prints its label when clicked
-	makeButton := func(label string, importance widget.Importance) *widget.Button {
-		btn := widget.NewButton(label, func() {
+	makeButton := func(label string, colorOfBtn color.Color) *customButtons.ColorButton {
+		btn := customButtons.NewColorButton(colorOfBtn, label, func() {
 			fmt.Println("Button clicked:", label)
 			CurrentLevel = label
 			if ls.game == "bubble" {
@@ -55,25 +63,43 @@ func (ls *LevelScreen) Render() {
 			}
 
 		})
-		btn.Importance = importance
+
 		return btn
 	}
 
 	// Add buttons with numbers to the grid
 	for i := 1; i <= 15; i++ {
 		if i > 0 && i < 6 {
-			grid.Add(makeButton(fmt.Sprintf("%d", i), lowImportance))
+			grid.Add(makeButton(fmt.Sprintf("%d", i), greenColor))
 		}
 		if i > 5 && i < 11 {
-			grid.Add(makeButton(fmt.Sprintf("%d", i), mediumImportance))
+			grid.Add(makeButton(fmt.Sprintf("%d", i), colornames.Orange))
 		}
 		if i > 10 {
-			grid.Add(makeButton(fmt.Sprintf("%d", i), highImportance))
+			grid.Add(makeButton(fmt.Sprintf("%d", i), redColor))
 		}
 
 	}
+	backButton := widget.NewButtonWithIcon("", BackBtnImgResource, func() {
+		ls.window.SetContent(ls.mainMenuContent)
+	})
 
-	LevelContent = grid
-	ls.window.SetContent(grid)
+	topLeftContainer := container.NewVBox(
+
+		backButton,
+		layout.NewSpacer(),
+		layout.NewSpacer(),
+	)
+	finalContainer := container.NewHBox(
+
+		topLeftContainer,
+		layout.NewSpacer(),
+	)
+
+	gameGridContainer := container.NewBorder(nil, nil, nil, nil, grid)
+	gameGridContainer.Add(finalContainer)
+	LevelContent = gameGridContainer
+
+	ls.window.SetContent(gameGridContainer)
 	ls.window.CenterOnScreen()
 }
