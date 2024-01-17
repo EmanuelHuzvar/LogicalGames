@@ -179,10 +179,10 @@ func shadeOfGreen(value int) color.Color {
 	maxComponent := 200
 	minComponent := 50
 	componentRange := maxComponent - minComponent
-	increments := float64(componentRange) / 4
+	increments := float64(componentRange) / 5
 
 	merges := int(math.Log2(float64(value)))
-	positionInGroup := (merges - 1) % 4
+	positionInGroup := merges % 5
 	greenBlueComponent := uint8(maxComponent - int(increments)*positionInGroup)
 
 	return color.RGBA{
@@ -197,10 +197,10 @@ func shadeOfBlue(value int) color.Color {
 	maxComponent := 200
 	minComponent := 50
 	componentRange := maxComponent - minComponent
-	increments := float64(componentRange) / 4
+	increments := float64(componentRange) / 5
 
 	merges := int(math.Log2(float64(value)))
-	positionInGroup := (merges - 1) % 4
+	positionInGroup := merges % 5
 	redGreenComponent := uint8(maxComponent - int(increments)*positionInGroup)
 
 	return color.RGBA{
