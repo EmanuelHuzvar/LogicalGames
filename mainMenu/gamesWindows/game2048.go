@@ -155,41 +155,58 @@ func tileColor(value int) color.Color {
 }
 
 func shadeOfRed(value int) color.Color {
-	// Ensure that the adjusted value is between 0 and 255
-	adjustedValue := (value * 7) % 255
-	// Keep red at full intensity and vary blue and green
+	var greenBlueComponent uint8
+	maxComponent := 200
+	minComponent := 50
+	componentRange := maxComponent - minComponent
+	increments := float64(componentRange) / 4
+
+	// Calculate the position of the value in its group of 4
+	merges := int(math.Log2(float64(value))) // log base 2 of value
+	positionInGroup := (merges - 1) % 4      // Position in the group of 4
+
+	greenBlueComponent = uint8(maxComponent - int(increments)*positionInGroup)
+
 	return color.RGBA{
-		R: 255,                        // Red at full intensity
-		G: 255 - uint8(adjustedValue), // Varying green
-		B: 255 - uint8(adjustedValue), // Varying blue
+		R: 255, // Red at full intensity
+		G: greenBlueComponent,
+		B: greenBlueComponent,
 		A: 255,
 	}
 }
 
 func shadeOfGreen(value int) color.Color {
-	// Ensure that the adjusted value is between 0 and 255
-	adjustedValue := (value * 7) % 255
+	maxComponent := 200
+	minComponent := 50
+	componentRange := maxComponent - minComponent
+	increments := float64(componentRange) / 4
 
-	// Keeping red at full intensity and varying green slightly
-	// to give different shades of yellow.
-	// The blue component is kept low to maintain the yellow color.
+	merges := int(math.Log2(float64(value)))
+	positionInGroup := (merges - 1) % 4
+	greenBlueComponent := uint8(maxComponent - int(increments)*positionInGroup)
+
 	return color.RGBA{
-		R: uint8(255 - adjustedValue),
-		G: 255,                        // Reducing green creates different shades
-		B: uint8(255 - adjustedValue), // Keeping blue low
+		R: greenBlueComponent,
+		G: 255,
+		B: greenBlueComponent,
 		A: 255,
 	}
 }
 
 func shadeOfBlue(value int) color.Color {
-	// Ensure that the adjusted value is between 0 and 255
-	adjustedValue := (value * 7) % 255
+	maxComponent := 200
+	minComponent := 50
+	componentRange := maxComponent - minComponent
+	increments := float64(componentRange) / 4
 
-	// Keep blue at full intensity and vary red and green
+	merges := int(math.Log2(float64(value)))
+	positionInGroup := (merges - 1) % 4
+	redGreenComponent := uint8(maxComponent - int(increments)*positionInGroup)
+
 	return color.RGBA{
-		R: uint8(255 - adjustedValue), // Varying red
-		G: uint8(255 - adjustedValue), // Varying green
-		B: 255,                        // Blue at full intensity
+		R: redGreenComponent,
+		G: redGreenComponent,
+		B: 255,
 		A: 255,
 	}
 }
