@@ -234,7 +234,8 @@ func getLevelData(currentLevel *int) ([]int, error) {
 }
 
 func loadLevelFromData(mapData []int, gridLayout *fyne.Container) (error, *fyne.Container) {
-	backButton := widget.NewButton("Back", func() {
+	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
+	backButton := widget.NewButtonWithIcon("", BackBtnImgResource, func() {
 		wind.SetContent(mainContent)
 	})
 	topLeftContainer := container.NewVBox(

@@ -2,6 +2,7 @@ package mainMenu
 
 import (
 	"ProjectMarekEmanuel/mainMenu/gamesWindows"
+	"ProjectMarekEmanuel/mainMenu/gamesWindows/customButtons"
 	_ "embed"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -20,9 +21,28 @@ func NewPlayScreen(window fyne.Window, app fyne.App) *PlayScreen {
 
 var GameWindowContainer fyne.CanvasObject
 
-func (ps *PlayScreen) Render() {
+//go:embed pictures/back-arrow.png
+var BackBtnImg []byte
 
-	backButton := widget.NewButton("Back", func() {
+//go:embed pictures/bubbleSortGame.png
+var BubbleSortGameImg []byte
+
+//go:embed pictures/nonogramGame.png
+var NonogramGameImg []byte
+
+//go:embed pictures/paintFloorGame.png
+var PaintFloorGameImg []byte
+
+//go:embed pictures/game2048Game.png
+var game2048Img []byte
+
+func (ps *PlayScreen) Render() {
+	backBtnImgResource := fyne.NewStaticResource("back-arrow.png", BackBtnImg)
+	ImgResourceBubble := fyne.NewStaticResource("bubbleSortGame.png", BubbleSortGameImg)
+	ImgResourceNonogram := fyne.NewStaticResource("nonogramGame.png", NonogramGameImg)
+	ImgResourcePaintFloor := fyne.NewStaticResource("paintFloorGame.png", PaintFloorGameImg)
+	ImgResource2048 := fyne.NewStaticResource("game2048Game.png", game2048Img)
+	backButton := widget.NewButtonWithIcon("", backBtnImgResource, func() {
 		ps.window.SetContent(MainMenuContent)
 	})
 
@@ -30,17 +50,18 @@ func (ps *PlayScreen) Render() {
 	//	gamesWindows.MakeOptionWindow(ps.app)
 	//})
 	gameButtons := []fyne.CanvasObject{
-		widget.NewButton("Bubble Sort", func() {
+
+		customButtons.NewImageButton(ImgResourceBubble, "Bubble Sort", func() {
 			gamesWindows.NewLevelScreen(ps.window, ps.app, GameWindowContainer, "bubble", MainMenuContent).Render()
 			//gamesWindows.NewBubbleScreen(ps.window, ps.app, GameWindowContainer).Render()
 		}),
-		widget.NewButton("Nonogram", func() {
+		customButtons.NewImageButton(ImgResourceNonogram, "Nonogram", func() {
 			gamesWindows.NewLevelScreen(ps.window, ps.app, GameWindowContainer, "nonogram", MainMenuContent).Render()
 		}),
-		widget.NewButton("Paint floor", func() {
+		customButtons.NewImageButton(ImgResourcePaintFloor, "Paint floor", func() {
 			gamesWindows.NewLevelScreen(ps.window, ps.app, GameWindowContainer, "paint", MainMenuContent).Render()
 		}),
-		widget.NewButton("2048", func() {
+		customButtons.NewImageButton(ImgResource2048, "2048", func() {
 			gamesWindows.NewGame2048Screen(ps.window, ps.app, GameWindowContainer, MainMenuContent).Render()
 		}),
 	}

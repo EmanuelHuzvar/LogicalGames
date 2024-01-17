@@ -57,6 +57,21 @@ var (
 //go:embed pictures/backroundBubble.jpg
 var backgroundImg []byte
 
+//go:embed pictures/backgroundimgnonogram.png
+var backgroundImgNonogram []byte
+
+//go:embed pictures/back-arrow.png
+var backBtnImg []byte
+
+//go:embed pictures/red.png
+var red []byte
+
+//go:embed pictures/green.jpg
+var green []byte
+
+//go:embed pictures/orange.jpg
+var orange []byte
+
 func NewBubbleScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, level string) *BubbleScreen {
 	mainApp = app
 	return &BubbleScreen{window: window, app: app, mainMenuContent: mainMenuContent, level: level}
@@ -271,6 +286,7 @@ func createFourByOneBunkWhite() *fyne.Container {
 	return bunkContainer
 }
 func makeLevel(level string) *fyne.Container {
+	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
 	imgResource := fyne.NewStaticResource("backroundBubble.jpg", backgroundImg)
 	backgroundImage := canvas.NewImageFromResource(imgResource)
 	backgroundImage.FillMode = canvas.ImageFillStretch
@@ -298,7 +314,7 @@ func makeLevel(level string) *fyne.Container {
 	}
 	grid.Add(createFourByOneBunkWhite())
 	grid2.Add(createFourByOneBunkWhite())
-	backButton := widget.NewButton("Back", func() {
+	backButton := widget.NewButtonWithIcon("", BackBtnImgResource, func() {
 		wind.SetContent(mainContent)
 	})
 	topLeftContainer := container.NewVBox(
@@ -319,7 +335,7 @@ func makeLevel(level string) *fyne.Container {
 		grid2,
 		layout.NewSpacer(),
 	)
-	backgroundImage.Translucency = 0.15
+	backgroundImage.Translucency = 0.45
 	combinedContainer := container.NewStack(
 		backgroundImage,
 		topContainer,
