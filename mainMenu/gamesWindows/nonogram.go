@@ -195,13 +195,8 @@ func (ns *NonogramScreen) Render() {
 	menuWindow.SetOnClosed(func() {
 		app.Quit()
 	})
-	backButton := widget.NewButton("Back", func() {
-		ns.window.SetContent(LevelContent)
-	})
 
-	//would get from db rows and cols
 	cont := makeLevelNonogram(ns.level)
-	cont.Add(backButton)
 
 	ns.window.SetContent(cont)
 
@@ -230,6 +225,19 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 
 	colsNumbers = level.Cols
 	rowsNumbers = level.Rows
+	backButton := widget.NewButton("Back", func() {
+		wind.SetContent(mainContent)
+	})
+	topLeftContainer := container.NewVBox(
+		backButton,
+		layout.NewSpacer(),
+		layout.NewSpacer(),
+	)
+	finalContainer := container.NewHBox(
+
+		topLeftContainer,
+		layout.NewSpacer(),
+	)
 
 	colsWinNumbers, _ = binaryStringsToInts(level.ColsWin)
 	cellsOfNonogramWin = createWinConditionGrid(gridSize, colsWinNumbers)
@@ -242,7 +250,7 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 	for i := 0; i <= cols; i++ {
 		if i == 0 {
 			// First cell is empty because it's the corner of the clues
-			grid.Add(widget.NewLabel(""))
+			grid.Add(finalContainer)
 		} else {
 
 			if colsNumbers[i-1] > 10 {
@@ -281,9 +289,11 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 
 		}
 	}
+
 	radio := customButtons.NewCustomRadioButton()
 
 	grid.Add(radio)
+
 	radio.Selected = "x"
 	radio.Refresh()
 	RadioBtn = radio

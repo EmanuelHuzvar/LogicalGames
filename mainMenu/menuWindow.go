@@ -2,15 +2,12 @@ package mainMenu
 
 import (
 	"ProjectMarekEmanuel/emanuel/buttons"
-	"ProjectMarekEmanuel/mainMenu/gamesWindows"
 	_ "embed"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
-	"fyne.io/fyne/v2/theme"
-	"fyne.io/fyne/v2/widget"
 	"golang.org/x/image/colornames"
 )
 
@@ -41,16 +38,16 @@ func MakeMenu() fyne.Window {
 		creditsScreen := NewCreditsScreen(menuWindow, app)
 		creditsScreen.Render()
 	})
-	questionMarkButton := widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
-		gamesWindows.MakeOptionWindow(app)
-	})
+	//questionMarkButton := widget.NewButtonWithIcon("", theme.HelpIcon(), func() {
+	//	gamesWindows.MakeOptionWindow(app)
+	//})
 	buttonContainer := container.NewVBox(
 		playButton,
 		creditsButton,
 		exitButton,
 	)
 	topLeftContainer := container.NewVBox(
-		questionMarkButton,
+		//questionMarkButton,
 		layout.NewSpacer(),
 	)
 	finalContainer := container.NewHBox(

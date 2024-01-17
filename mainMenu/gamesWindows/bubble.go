@@ -1,6 +1,7 @@
 package gamesWindows
 
 import (
+	_ "embed"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -52,6 +53,9 @@ var (
 	orangeColor  = colornames.Orange
 	yellowColor  = colornames.Yellow
 )
+
+//go:embed pictures/backroundBubble.jpg
+var backgroundImg []byte
 
 func NewBubbleScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, level string) *BubbleScreen {
 	mainApp = app
@@ -173,11 +177,8 @@ func (bs *BubbleScreen) Render() {
 	menuWindow.SetOnClosed(func() {
 		app.Quit()
 	})
-	backButton := widget.NewButton("Back", func() {
-		bs.window.SetContent(LevelContent)
-	})
+
 	cont := makeLevel(bs.level)
-	cont.Add(backButton)
 
 	bs.window.SetContent(cont)
 	bs.window.CenterOnScreen()
@@ -270,6 +271,9 @@ func createFourByOneBunkWhite() *fyne.Container {
 	return bunkContainer
 }
 func makeLevel(level string) *fyne.Container {
+	imgResource := fyne.NewStaticResource("backroundBubble.jpg", backgroundImg)
+	backgroundImage := canvas.NewImageFromResource(imgResource)
+	backgroundImage.FillMode = canvas.ImageFillStretch
 	emptyBunk := []Bunk{}
 	Bunks = emptyBunk
 	lev, _ := GetLevelByID(level, "Bubble")
@@ -294,17 +298,35 @@ func makeLevel(level string) *fyne.Container {
 	}
 	grid.Add(createFourByOneBunkWhite())
 	grid2.Add(createFourByOneBunkWhite())
+	backButton := widget.NewButton("Back", func() {
+		wind.SetContent(mainContent)
+	})
+	topLeftContainer := container.NewVBox(
+		backButton,
+		layout.NewSpacer(),
+		layout.NewSpacer(),
+	)
+	finalContainer := container.NewHBox(
 
+		topLeftContainer,
+		layout.NewSpacer(),
+	)
 	topContainer := container.NewVBox(
+		finalContainer,
 		layout.NewSpacer(),
 		grid,
 		layout.NewSpacer(),
 		grid2,
 		layout.NewSpacer(),
 	)
-	LevelInProggress = level
+	backgroundImage.Translucency = 0.15
+	combinedContainer := container.NewStack(
+		backgroundImage,
+		topContainer,
+	)
+
 	startBunksToColorRoutine(Bunks)
-	return topContainer
+	return combinedContainer
 
 }
 

@@ -26,13 +26,14 @@ type Game2048Screen struct {
 	window          fyne.Window
 	app             fyne.App
 	mainMenuContent fyne.CanvasObject
+	mainMenuWindow  fyne.CanvasObject
 }
 
 var gameStateInProgress *GameState
 
-func NewGame2048Screen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject) *Game2048Screen {
+func NewGame2048Screen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, mainMenuWindow fyne.CanvasObject) *Game2048Screen {
 	mainApp = app
-	return &Game2048Screen{window: window, app: app, mainMenuContent: mainMenuContent}
+	return &Game2048Screen{window: window, app: app, mainMenuContent: mainMenuContent, mainMenuWindow: mainMenuWindow}
 }
 
 func (g48 *Game2048Screen) Render() {

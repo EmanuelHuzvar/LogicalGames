@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -17,10 +18,11 @@ type LevelScreen struct {
 	app             fyne.App
 	game            string
 	mainMenuContent fyne.CanvasObject
+	mainMenuWindow  fyne.CanvasObject
 }
 
-func NewLevelScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, game string) *LevelScreen {
-	return &LevelScreen{window: window, app: app, mainMenuContent: mainMenuContent, game: game}
+func NewLevelScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, game string, mainMenuWindow fyne.CanvasObject) *LevelScreen {
+	return &LevelScreen{window: window, app: app, mainMenuContent: mainMenuContent, game: game, mainMenuWindow: mainMenuWindow}
 }
 
 var CurrentLevel string
@@ -72,8 +74,22 @@ func (ls *LevelScreen) Render() {
 		}
 
 	}
+	backButton := widget.NewButton("Back", func() {
+		ls.window.SetContent(ls.mainMenuContent)
+	})
+	topLeftContainer := container.NewVBox(
+		backButton,
+		layout.NewSpacer(),
+		layout.NewSpacer(),
+	)
+	finalContainer := container.NewHBox(
 
-	LevelContent = grid
-	ls.window.SetContent(grid)
+		topLeftContainer,
+		layout.NewSpacer(),
+	)
+	gameGridContainer := container.NewBorder(nil, nil, nil, nil, grid)
+	gameGridContainer.Add(finalContainer)
+	LevelContent = gameGridContainer
+	ls.window.SetContent(gameGridContainer)
 	ls.window.CenterOnScreen()
 }
