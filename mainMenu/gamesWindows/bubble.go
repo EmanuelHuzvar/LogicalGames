@@ -276,6 +276,18 @@ func createFourByOneBunkWhite() *fyne.Container {
 		circleThree.PositionInBunk = [2]int{9, 2}
 		circleFour.PositionInBunk = [2]int{9, 3}
 	}
+	if len(Bunks) == 6 {
+		circleOne.PositionInBunk = [2]int{5, 0}
+		circleTwo.PositionInBunk = [2]int{5, 1}
+		circleThree.PositionInBunk = [2]int{5, 2}
+		circleFour.PositionInBunk = [2]int{5, 3}
+	}
+	if len(Bunks) == 8 {
+		circleOne.PositionInBunk = [2]int{7, 0}
+		circleTwo.PositionInBunk = [2]int{7, 1}
+		circleThree.PositionInBunk = [2]int{7, 2}
+		circleFour.PositionInBunk = [2]int{7, 3}
+	}
 	bunkContainer := container.NewVBox(
 		circleOne,
 		circleTwo,
@@ -372,13 +384,15 @@ func swapColors(b1, b2 *CircleButton) {
 	colorOfLastCircle := getLastNonWhiteColorInBunk(Bunks, b2.PositionInBunk[0])
 	fmt.Println("last color ", colorOfLastCircle)
 	fmt.Println(b1.FillColor, colorOfLastCircle)
+
 	if colorOfLastCircle == nil {
 		colorOfLastCircle = whiteColor
 	}
-	fmt.Println(b1.FillColor, colorOfLastCircle)
+
 	if colorOfLastCircle != b1.FillColor && colorOfLastCircle != whiteColor {
 		return
 	}
+	fmt.Println("asdasda")
 	fmt.Println(b1.FillColor, colorOfLastCircle)
 
 	lastWhiteButton := getLastWhiteButtonInBunk(Bunks, b2.PositionInBunk[0])
@@ -425,6 +439,9 @@ func ColorName(c color.Color) string {
 	}
 	return "unknown" // or any default value you prefer
 }
+
+//getLastNonWhiteColorInBunk
+
 func getLastNonWhiteColorInBunk(bunks []Bunk, bunkIndex int) color.Color {
 	if bunkIndex < 0 || bunkIndex >= len(bunks) {
 		return nil // Return zero value if the index is out of range
@@ -432,14 +449,20 @@ func getLastNonWhiteColorInBunk(bunks []Bunk, bunkIndex int) color.Color {
 
 	bunk := bunks[bunkIndex]
 
-	// Iterate over the buttons in reverse to find the last non-white color
-	for i := len(bunk.Buttons) - 1; i >= 0; i-- {
-		if bunk.Buttons[i].FillColor != whiteColor {
+	// Iterate over the buttons from the start to find the first non-white color
+	for i := 0; i < len(bunk.Buttons); i++ {
+		if !sameColor(bunk.Buttons[i].FillColor, whiteColor) {
 			return bunk.Buttons[i].FillColor
 		}
 	}
 
 	return nil // Return nil if all buttons are white or there are no buttons
+}
+
+func sameColor(c1, c2 color.Color) bool {
+	r1, g1, b1, a1 := c1.RGBA()
+	r2, g2, b2, a2 := c2.RGBA()
+	return r1 == r2 && g1 == g2 && b1 == b2 && a1 == a2
 }
 func getLastWhiteButtonInBunk(bunks []Bunk, bunkIndex int) *CircleButton {
 	if bunkIndex < 0 || bunkIndex >= len(bunks) {
