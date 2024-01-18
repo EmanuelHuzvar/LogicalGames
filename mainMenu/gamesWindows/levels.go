@@ -8,13 +8,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/image/colornames"
 	"image/color"
 )
-
-var lowImportance = widget.HighImportance
-var mediumImportance = widget.WarningImportance
-var highImportance = widget.DangerImportance
 
 type LevelScreen struct {
 	window          fyne.Window
@@ -22,6 +17,25 @@ type LevelScreen struct {
 	game            string
 	mainMenuContent fyne.CanvasObject
 	mainMenuWindow  fyne.CanvasObject
+}
+
+var RedColorWin = color.RGBA{
+	R: 255,
+	G: 179,
+	B: 186,
+	A: 255,
+}
+var GreenColorWin = color.RGBA{
+	R: 186,
+	G: 255,
+	B: 201,
+	A: 255,
+}
+var YellowColorWin = color.RGBA{
+	R: 255,
+	G: 255,
+	B: 186,
+	A: 255,
 }
 
 func NewLevelScreen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, game string, mainMenuWindow fyne.CanvasObject) *LevelScreen {
@@ -70,13 +84,13 @@ func (ls *LevelScreen) Render() {
 	// Add buttons with numbers to the grid
 	for i := 1; i <= 15; i++ {
 		if i > 0 && i < 6 {
-			grid.Add(makeButton(fmt.Sprintf("%d", i), greenColor))
+			grid.Add(makeButton(fmt.Sprintf("%d", i), GreenColorWin))
 		}
 		if i > 5 && i < 11 {
-			grid.Add(makeButton(fmt.Sprintf("%d", i), colornames.Orange))
+			grid.Add(makeButton(fmt.Sprintf("%d", i), YellowColorWin))
 		}
 		if i > 10 {
-			grid.Add(makeButton(fmt.Sprintf("%d", i), redColor))
+			grid.Add(makeButton(fmt.Sprintf("%d", i), RedColorWin))
 		}
 
 	}

@@ -350,7 +350,13 @@ func createWinConditionGrid(gridSize int, colsWinNumbers []int) []*NonogramCell 
 }
 func checkWinConditionNonogram(cellsOfNonogram []*NonogramCell, cellsOfNonogramWin []*NonogramCell) bool {
 	for i, cell := range cellsOfNonogram {
+
+		if cell.state == StateEmpty || cell.state == StateFilled {
+			cell.state = StateEmpty
+		}
+
 		if cell.state != cellsOfNonogramWin[i].state {
+
 			return false
 		}
 	}

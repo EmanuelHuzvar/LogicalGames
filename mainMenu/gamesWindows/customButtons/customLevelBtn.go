@@ -31,7 +31,7 @@ func NewImageButton(imageResource fyne.Resource, text string, tapped func()) *Im
 
 func (b *ImageButton) CreateRenderer() fyne.WidgetRenderer {
 	b.label.Color = colornames.Black
-	b.label.TextSize = 25
+	b.label.TextSize = 35
 	b.image.Translucency = 0.45
 	return &imageButtonRenderer{
 		button:  b,
