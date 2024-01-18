@@ -17,6 +17,13 @@ type Level struct {
 	ID     string     `firestore:"Level"`
 	Fields [][]string `firestore:"-"`
 }
+
+type NewLevel struct {
+	ID         string `firestore:"lvl"`
+	Dimensions []int  `firestore:"dimensions"`
+	Map        []int  `firestore:"map""`
+}
+
 type LevelNonogram struct {
 	ID      string   `firestore:"id"`
 	Cols    []int    `firestore:"cols"`
@@ -193,4 +200,19 @@ func LoadLevelData(levelID string) ([]int, []int, error) {
 	}
 
 	return levelData.Dimensions, levelData.Map, nil
+}
+
+func AddPaintFloorLevel(level NewLevel) error {
+	client, err := firestore.NewClient(ctx, projectID, option.WithCredentialsFile(keyPath))
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	_, err = client.Collection("PaintFloor").Doc(level.ID).Set(ctx, level)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
