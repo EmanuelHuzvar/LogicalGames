@@ -73,17 +73,29 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 	}
 	btn.OnTapped = func() {
 		if game == "bubble" {
-			content := makeLevel(increamentLevel(LevelInProggress))
+			level := increamentLevel(LevelInProggress)
+			if level == "15" {
+				level = "1"
+			}
+			content := makeLevel(level)
 			btnSetContent(wind, content)
 		}
 		if game == "paint" {
-			content := MakeGamePaintFloor(increamentLevel(LevelInProggressPaint))
+			level := increamentLevel(LevelInProggress)
+			if level == "15" {
+				level = "1"
+			}
+			content := MakeGamePaintFloor(level)
 			containeris := content.Content()
 			btnSetContent(wind, containeris)
 			SetUpPaintFloorWindow(wind, ContentPaint, PsWindow)
 		}
 		if game == "nonogram" {
-			content := makeLevelNonogram(increamentLevel(LevelInProggressNonogram))
+			level := increamentLevel(LevelInProggress)
+			if level == "15" {
+				level = "1"
+			}
+			content := makeLevelNonogram(level)
 			btnSetContent(wind, content)
 		}
 
