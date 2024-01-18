@@ -31,6 +31,8 @@ type Game2048Screen struct {
 	mainMenuWindow  fyne.CanvasObject
 }
 
+var Game2048WindowInProggress *Game2048Screen
+
 var gameStateInProgress *GameState
 
 func NewGame2048Screen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, mainMenuWindow fyne.CanvasObject) *Game2048Screen {
@@ -62,6 +64,7 @@ func (g48 *Game2048Screen) Render() {
 func MakeGameGame2048(g48 *Game2048Screen) fyne.Window {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("2048")
+	//Game2048WindowInProggress = nil
 
 	gameState := NewGameState(4) // Assuming a 4x4 grid for 2048
 	addRandomTile(gameState)
@@ -75,6 +78,7 @@ func MakeGameGame2048(g48 *Game2048Screen) fyne.Window {
 
 	verticalLayout := container.NewVBox(g48.scoreLabel, g48.gridLayout)
 	myWindow.SetContent(verticalLayout)
+	Game2048WindowInProggress = g48
 	return myWindow
 }
 
@@ -133,6 +137,7 @@ func renderGrid(state *GameState, g48 *Game2048Screen) {
 
 			label := canvas.NewText(formatTileValue(tile.Value), color.Black)
 			label.TextStyle.Bold = true
+			label.TextSize = 50
 			label.Alignment = fyne.TextAlignCenter
 
 			overlay := container.NewStack(rect, label)
@@ -231,14 +236,25 @@ func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *G
 	g48.window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
 		switch event.Name {
 		case fyne.KeyUp:
+			if !canMove(gameState) {
+				//MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
+			}
 			if canMoveUp(gameState) {
+				fmt.Println()
 				moveTilesUp(gameState)
 				addRandomTile(gameState)
 				renderGrid(gameState, g48)
 				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
+			if !canMove(gameState) {
+				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
+			}
+
 		case fyne.KeyRight:
+			if !canMove(gameState) {
+				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
+			}
 			if canMoveRight(gameState) {
 				moveTilesRight(gameState)
 				addRandomTile(gameState)
@@ -246,7 +262,13 @@ func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *G
 				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
+			if !canMove(gameState) {
+				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
+			}
 		case fyne.KeyDown:
+			if !canMove(gameState) {
+				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
+			}
 			if canMoveDown(gameState) {
 				moveTilesDown(gameState)
 				addRandomTile(gameState)
@@ -254,13 +276,22 @@ func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *G
 				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
+			if !canMove(gameState) {
+				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
+			}
 		case fyne.KeyLeft:
+			if !canMove(gameState) {
+				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
+			}
 			if canMoveLeft(gameState) {
 				moveTilesLeft(gameState)
 				addRandomTile(gameState)
 				renderGrid(gameState, g48)
 				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
+			}
+			if !canMove(gameState) {
+				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
 			}
 		}
 	})
@@ -406,10 +437,12 @@ func canMoveLeft(gameState *GameState) bool {
 	for row := 0; row < len(gameState.Grid); row++ {
 		for col := 1; col < len(gameState.Grid[row]); col++ {
 			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row][col-1].Value == 0 || gameState.Grid[row][col-1].Value == gameState.Grid[row][col].Value) {
+				fmt.Println("Can move left: true")
 				return true
 			}
 		}
 	}
+	fmt.Println("Can move left: false")
 	return false
 }
 
@@ -417,10 +450,12 @@ func canMoveRight(gameState *GameState) bool {
 	for row := 0; row < len(gameState.Grid); row++ {
 		for col := 0; col < len(gameState.Grid[row])-1; col++ {
 			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row][col+1].Value == 0 || gameState.Grid[row][col+1].Value == gameState.Grid[row][col].Value) {
+				fmt.Println("Can move right: true")
 				return true
 			}
 		}
 	}
+	fmt.Println("Can move right: false")
 	return false
 }
 
@@ -428,10 +463,12 @@ func canMoveUp(gameState *GameState) bool {
 	for col := 0; col < len(gameState.Grid[0]); col++ {
 		for row := 1; row < len(gameState.Grid); row++ {
 			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row-1][col].Value == 0 || gameState.Grid[row-1][col].Value == gameState.Grid[row][col].Value) {
+				fmt.Println("Can move up: true")
 				return true
 			}
 		}
 	}
+	fmt.Println("Can move up: false")
 	return false
 }
 
@@ -439,11 +476,22 @@ func canMoveDown(gameState *GameState) bool {
 	for col := 0; col < len(gameState.Grid[0]); col++ {
 		for row := 0; row < len(gameState.Grid)-1; row++ {
 			if gameState.Grid[row][col].Value != 0 && (gameState.Grid[row+1][col].Value == 0 || gameState.Grid[row+1][col].Value == gameState.Grid[row][col].Value) {
+				fmt.Println("Can move down: true")
 				return true
 			}
 		}
 	}
+	fmt.Println("Can move down: false")
 	return false
+}
+
+func canMove(gameState *GameState) bool {
+	if !canMoveUp(gameState) && !canMoveRight(gameState) && !canMoveDown(gameState) && !canMoveLeft(gameState) {
+		fmt.Println("Can move: false")
+		return false
+	}
+	fmt.Println("Can move: true")
+	return true
 }
 
 //	func createGridContainer(state *GameState) *fyne.Container {
@@ -480,6 +528,7 @@ func createGridContainer(state *GameState) *fyne.Container {
 
 			label := canvas.NewText(formatTileValue(tile.Value), color.Black)
 			label.TextStyle.Bold = true
+			label.TextSize = 50
 			label.Alignment = fyne.TextAlignCenter
 
 			overlay := container.NewStack(rect, label)
