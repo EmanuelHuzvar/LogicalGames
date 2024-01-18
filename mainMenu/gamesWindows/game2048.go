@@ -35,8 +35,8 @@ var gameStateInProgress *GameState
 
 func NewGame2048Screen(window fyne.Window, app fyne.App, mainMenuContent fyne.CanvasObject, mainMenuWindow fyne.CanvasObject) *Game2048Screen {
 	mainApp = app
-	window.SetFixedSize(true)
-	window.Resize(fyne.NewSize(50, 50))
+	//window.SetFixedSize(true)
+	//window.Resize(fyne.NewSize(800, 800))
 	return &Game2048Screen{window: window, app: app, mainMenuContent: mainMenuContent, mainMenuWindow: mainMenuWindow}
 }
 
@@ -70,6 +70,7 @@ func MakeGameGame2048(g48 *Game2048Screen) fyne.Window {
 	g48.scoreLabel.TextStyle.Bold = true
 
 	g48.gridLayout = createGridContainer(gameState)
+	g48.gridLayout.Resize(fyne.NewSize(1000, 1000))
 	renderGrid(gameState, g48)
 
 	verticalLayout := container.NewVBox(g48.scoreLabel, g48.gridLayout)
@@ -123,7 +124,7 @@ func addRandomTile(state *GameState) {
 
 func renderGrid(state *GameState, g48 *Game2048Screen) {
 	gridLayout := container.NewGridWithColumns(len(state.Grid))
-	tileSize := 100
+	tileSize := 150
 	for i := range state.Grid {
 		for j := range state.Grid[i] {
 			tile := state.Grid[i][j]
