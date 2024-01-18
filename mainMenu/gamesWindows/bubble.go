@@ -314,9 +314,10 @@ func makeLevel(level string) *fyne.Container {
 
 	}
 
-	grid := container.New(layout.NewGridLayout(5))
+	gridLength := (len(bunkForDb) + 2) / 2
+	grid := container.New(layout.NewGridLayout(gridLength))
 
-	grid2 := container.New(layout.NewGridLayout(5))
+	grid2 := container.New(layout.NewGridLayout(gridLength))
 
 	for i := 0; i < len(bunkForDb)/2; i++ {
 		grid.Add(bunkForDb[i])
@@ -392,7 +393,7 @@ func swapColors(b1, b2 *CircleButton) {
 	if colorOfLastCircle != b1.FillColor && colorOfLastCircle != whiteColor {
 		return
 	}
-	fmt.Println("asdasda")
+
 	fmt.Println(b1.FillColor, colorOfLastCircle)
 
 	lastWhiteButton := getLastWhiteButtonInBunk(Bunks, b2.PositionInBunk[0])
