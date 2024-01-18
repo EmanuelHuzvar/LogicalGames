@@ -48,7 +48,7 @@ func MakeLoseWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasO
 			addRandomTile(newState)
 			gameStateInProgress = newState // Update the global game state
 			renderGrid(newState, Game2048WindowInProggress)
-			Game2048WindowInProggress.window.SetContent(container.NewVBox(Game2048WindowInProggress.scoreLabel, Game2048WindowInProggress.gridLayout))
+			Game2048WindowInProggress.window.SetContent(container.NewVBox(setUpLayout(Game2048WindowInProggress)))
 
 			// Update the keyboard listener to use the new game state
 			setUpKeyboardListener(Game2048WindowInProggress.window, Game2048WindowInProggress, newState)

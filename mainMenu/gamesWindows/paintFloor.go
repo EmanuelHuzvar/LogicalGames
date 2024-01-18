@@ -29,6 +29,11 @@ type PaintFloorScreen struct {
 	level           string
 }
 
+var (
+	mapDataGlobal    []int
+	gridLayoutGlobal *fyne.Container
+)
+
 var PsWindow *PaintFloorScreen
 var LevelInProggressPaint string
 var ContentPaint *fyne.Container
@@ -81,6 +86,8 @@ func (ps *PaintFloorScreen) Render() {
 func MakeGamePaintFloor(levelId string) fyne.Window {
 	levelComplete = false
 	ContentPaint = nil
+	mapDataGlobal = nil
+	gridLayoutGlobal = nil
 	myApp := app.NewWithID("PaintFloor")
 	myWindow := myApp.NewWindow("Griddy Game")
 
@@ -88,11 +95,13 @@ func MakeGamePaintFloor(levelId string) fyne.Window {
 	LevelInProggressPaint = levelId
 	// Initialize current level
 	mapData, err := getLevelData(&currentLevel)
+	mapDataGlobal = mapData
 
 	if err != nil {
 		return nil
 	}
 	gridLayout := container.NewGridWithColumns(gridWidth)
+	gridLayoutGlobal = gridLayout
 	// Load level data from the file
 	erroris, gridLayout := loadLevelFromData(mapData, gridLayout)
 	if erroris != nil {
@@ -237,10 +246,12 @@ func getLevelData(currentLevel *int) ([]int, error) {
 }
 
 func loadLevelFromData(mapData []int, gridLayout *fyne.Container) (error, *fyne.Container) {
+
 	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
 	backButton := widget.NewButtonWithIcon("", BackBtnImgResource, func() {
 		wind.SetContent(mainContent)
 	})
+
 	topLeftContainer := container.NewVBox(
 		backButton,
 		layout.NewSpacer(),

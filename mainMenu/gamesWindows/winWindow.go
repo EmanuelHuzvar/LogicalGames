@@ -84,18 +84,23 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 			btnSetContent(wind, content)
 		}
 		if game == "paint" {
-			level := increamentLevel(LevelInProggress)
+			level := increamentLevel(LevelInProggressPaint)
 			fmt.Println(level)
 			if level == "15" {
 				level = "1"
 			}
+			fmt.Println(level)
+			fmt.Println(level)
+			fmt.Println(level)
+			fmt.Println(level)
+			fmt.Println(level)
 			content := MakeGamePaintFloor(level)
 			containeris := content.Content()
 			btnSetContent(wind, containeris)
 			SetUpPaintFloorWindow(wind, ContentPaint, PsWindow)
 		}
 		if game == "nonogram" {
-			level := increamentLevel(LevelInProggress)
+			level := increamentLevel(LevelInProggressNonogram)
 			if level == "15" {
 				level = "1"
 			}

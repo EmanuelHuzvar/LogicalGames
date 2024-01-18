@@ -6,6 +6,8 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 	"image/color"
 	"math"
 	"math/rand"
@@ -29,6 +31,7 @@ type Game2048Screen struct {
 	scoreLabel      *canvas.Text
 	gridLayout      *fyne.Container
 	mainMenuWindow  fyne.CanvasObject
+	backButton      fyne.Widget
 }
 
 var Game2048WindowInProggress *Game2048Screen
@@ -53,7 +56,7 @@ func (g48 *Game2048Screen) Render() {
 	menuWindow.SetOnClosed(func() {
 		app.Quit()
 	})
-
+	MakeGameGame2048(g48)
 	content := MakeGameGame2048(g48).Content()
 	g48.window.SetContent(content)
 	setUpKeyboardListener(g48.window, g48, gameStateInProgress)
@@ -62,9 +65,14 @@ func (g48 *Game2048Screen) Render() {
 }
 
 func MakeGameGame2048(g48 *Game2048Screen) fyne.Window {
+	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
 	myApp := app.New()
 	myWindow := myApp.NewWindow("2048")
 	//Game2048WindowInProggress = nil
+
+	g48.backButton = widget.NewButtonWithIcon("", BackBtnImgResource, func() {
+		g48.window.SetContent(g48.mainMenuContent)
+	})
 
 	gameState := NewGameState(4) // Assuming a 4x4 grid for 2048
 	addRandomTile(gameState)
@@ -73,12 +81,17 @@ func MakeGameGame2048(g48 *Game2048Screen) fyne.Window {
 	g48.scoreLabel.TextStyle.Bold = true
 
 	g48.gridLayout = createGridContainer(gameState)
+
 	g48.gridLayout.Resize(fyne.NewSize(1000, 1000))
 	renderGrid(gameState, g48)
 
-	verticalLayout := container.NewVBox(g48.scoreLabel, g48.gridLayout)
-	myWindow.SetContent(verticalLayout)
+	//verticalLayout := container.NewVBox(g48.backButton, g48.scoreLabel, g48.gridLayout)
+
+	//myWindow.SetContent(verticalLayout)
+
 	Game2048WindowInProggress = g48
+	vBoxContainer := setUpLayout(g48)
+	myWindow.SetContent(vBoxContainer)
 	return myWindow
 }
 
@@ -127,6 +140,7 @@ func addRandomTile(state *GameState) {
 }
 
 func renderGrid(state *GameState, g48 *Game2048Screen) {
+
 	gridLayout := container.NewGridWithColumns(len(state.Grid))
 	tileSize := 150
 	for i := range state.Grid {
@@ -141,12 +155,17 @@ func renderGrid(state *GameState, g48 *Game2048Screen) {
 			label.Alignment = fyne.TextAlignCenter
 
 			overlay := container.NewStack(rect, label)
+
 			gridLayout.Add(overlay)
+
 		}
 	}
+
 	g48.gridLayout = gridLayout
 	g48.gridLayout.Refresh()
 	g48.scoreLabel.Text = fmt.Sprintf("Score: %d", state.Score)
+
+	g48.gridLayout.Refresh()
 	g48.scoreLabel.Refresh()
 }
 
@@ -244,7 +263,7 @@ func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *G
 				moveTilesUp(gameState)
 				addRandomTile(gameState)
 				renderGrid(gameState, g48)
-				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				g48.window.SetContent(container.NewVBox(setUpLayout(g48)))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 			if !canMove(gameState) {
@@ -259,7 +278,7 @@ func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *G
 				moveTilesRight(gameState)
 				addRandomTile(gameState)
 				renderGrid(gameState, g48)
-				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				g48.window.SetContent(container.NewVBox(setUpLayout(g48)))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 			if !canMove(gameState) {
@@ -273,7 +292,7 @@ func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *G
 				moveTilesDown(gameState)
 				addRandomTile(gameState)
 				renderGrid(gameState, g48)
-				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				g48.window.SetContent(container.NewVBox(setUpLayout(g48)))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 			if !canMove(gameState) {
@@ -287,12 +306,13 @@ func setUpKeyboardListener(window fyne.Window, g48 *Game2048Screen, gameState *G
 				moveTilesLeft(gameState)
 				addRandomTile(gameState)
 				renderGrid(gameState, g48)
-				g48.window.SetContent(container.NewVBox(g48.scoreLabel, g48.gridLayout))
+				g48.window.SetContent(container.NewVBox(setUpLayout(g48)))
 				fmt.Printf("Current Score: %d\n", gameState.Score)
 			}
 			if !canMove(gameState) {
 				MakeLoseWindow(g48.app, g48.window, g48.mainMenuContent, "2048")
 			}
+
 		}
 	})
 }
@@ -537,4 +557,27 @@ func createGridContainer(state *GameState) *fyne.Container {
 	}
 
 	return gridLayout
+}
+
+func setUpLayout(g48 *Game2048Screen) *fyne.Container {
+	// Create an HBox layout for the top line
+	topLine := container.NewHBox()
+
+	// Add the back button to the left
+	topLine.Add(g48.backButton)
+
+	// Add a spacer to push the score label to the center
+	topLine.Add(layout.NewSpacer())
+
+	// Add the score label in the middle
+	topLine.Add(g48.scoreLabel)
+
+	// Add another spacer to keep the score label in the center
+	topLine.Add(layout.NewSpacer())
+
+	// Create the main VBox layout including the top line and the grid layout
+	mainLayout := container.NewVBox(topLine, g48.gridLayout)
+
+	// Set the window's content to this new layout
+	return mainLayout
 }

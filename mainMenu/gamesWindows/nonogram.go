@@ -220,8 +220,9 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 	rowsNumbers = nil
 	colsWinNumbers = nil
 	cellsOfNonogramWin = nil
+	LevelInProggressNonogram = ""
 	level, _ := GetLevelNonogramByID(nonogramLevel)
-
+	LevelInProggressNonogram = nonogramLevel
 	cols := len(level.Cols)
 	rows := len(level.Rows)
 	gridSize = len(level.Cols)

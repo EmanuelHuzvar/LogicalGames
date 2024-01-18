@@ -15,6 +15,8 @@ import (
 //go:embed pictures/background.jpg
 var backgroundImg []byte
 
+//go:embed pictures/credits.png
+var BackgroundImgCredits []byte
 var MainMenuContent fyne.CanvasObject
 
 func MakeMenu() fyne.Window {
