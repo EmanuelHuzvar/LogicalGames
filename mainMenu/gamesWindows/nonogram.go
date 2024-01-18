@@ -259,9 +259,12 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 			if colsNumbers[i-1] > 10 {
 				firstNum := colsNumbers[i-1] / 10
 				secondNum := colsNumbers[i-1] % 10
+
 				label := widget.NewLabel(fmt.Sprintf("%d\n%d", firstNum, secondNum))
+
 				grid.Add(label)
 			} else {
+
 				grid.Add(widget.NewLabel(fmt.Sprintf("%d", colsNumbers[i-1])))
 			}
 
@@ -308,6 +311,9 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 	)
 	return combinedContainer
 }
+func intToString(num int) string {
+	return strconv.Itoa(num)
+}
 
 func binaryStringsToInts(binStrs []string) ([]int, error) {
 	var ints []int
@@ -350,7 +356,13 @@ func createWinConditionGrid(gridSize int, colsWinNumbers []int) []*NonogramCell 
 }
 func checkWinConditionNonogram(cellsOfNonogram []*NonogramCell, cellsOfNonogramWin []*NonogramCell) bool {
 	for i, cell := range cellsOfNonogram {
+
+		if cell.state == StateEmpty || cell.state == StateFilled {
+			cell.state = StateEmpty
+		}
+
 		if cell.state != cellsOfNonogramWin[i].state {
+
 			return false
 		}
 	}

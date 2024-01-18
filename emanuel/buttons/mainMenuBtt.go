@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"golang.org/x/image/colornames"
 	"image/color"
 )
 
@@ -12,19 +13,21 @@ import (
 
 type ColoredTextButton struct {
 	widget.BaseWidget
-	Text        string
-	TextColor   color.Color
-	ButtonColor color.Color
-	OnTapped    func()
-	hovered     bool
+	Text            string
+	TextColor       color.Color
+	ButtonColor     color.Color
+	BackgroundColor color.Color
+	OnTapped        func()
+	hovered         bool
 }
 
-func NewColoredTextButton(text string, textColor, btnColor color.Color, tapped func()) *ColoredTextButton {
+func NewColoredTextButton(text string, textColor, btnColor, bgColor color.Color, tapped func()) *ColoredTextButton {
 	btn := &ColoredTextButton{
-		Text:        text,
-		TextColor:   textColor,
-		ButtonColor: btnColor,
-		OnTapped:    tapped,
+		Text:            text,
+		TextColor:       textColor,
+		ButtonColor:     btnColor,
+		BackgroundColor: bgColor,
+		OnTapped:        tapped,
 	}
 	btn.ExtendBaseWidget(btn)
 	return btn
@@ -51,9 +54,15 @@ func (b *ColoredTextButton) CreateRenderer() fyne.WidgetRenderer {
 	label := canvas.NewText(b.Text, b.TextColor)
 	label.Alignment = fyne.TextAlignCenter
 	bg := canvas.NewRectangle(b.ButtonColor)
+	b.BackgroundColor = colornames.Black
+	bg.StrokeWidth = 32
+	bg.CornerRadius = 20
 
 	underlyingButton := widget.NewButton("", b.OnTapped)
 	return &coloredTextButtonRenderer{label: label, bg: bg, button: underlyingButton, btn: b}
+}
+func (r *coloredTextButtonRenderer) BackgroundColor() color.Color {
+	return r.btn.BackgroundColor
 }
 
 type coloredTextButtonRenderer struct {
@@ -72,7 +81,9 @@ func (r *coloredTextButtonRenderer) MinSize() fyne.Size {
 
 func (r *coloredTextButtonRenderer) Refresh() {
 	r.label.Text = r.btn.Text
+	r.label.Color = r.btn.TextColor
 	r.bg.FillColor = r.btn.ButtonColor
+	r.btn.BackgroundColor = colornames.Black
 	if r.btn.hovered {
 		r.bg.FillColor = DarkenColor(r.btn.ButtonColor)
 		r.label.Color = DarkenColor(r.btn.TextColor)
@@ -80,17 +91,14 @@ func (r *coloredTextButtonRenderer) Refresh() {
 	r.bg.Refresh()
 	r.label.Refresh()
 	r.button.Refresh()
-
+	canvas.Refresh(r.btn)
 }
 
 func (r *coloredTextButtonRenderer) Layout(size fyne.Size) {
+	r.btn.ButtonColor = colornames.Black
 	r.bg.Resize(size)
 	r.button.Resize(size)
 	r.label.Resize(size)
-}
-
-func (r *coloredTextButtonRenderer) BackgroundColor() color.Color {
-	return theme.BackgroundColor()
 }
 
 func (r *coloredTextButtonRenderer) Objects() []fyne.CanvasObject {

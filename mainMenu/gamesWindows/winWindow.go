@@ -7,23 +7,35 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"image/color"
 	"strconv"
 )
 
 //go:embed pictures/check.png
 var checkImg []byte
 
+//go:embed pictures/WinLevelImg.png
+var winLevelImg []byte
+
 func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasObject, game string) {
 
 	checkImgResource := fyne.NewStaticResource("check.png", checkImg)
+	WinWindowImgResource := fyne.NewStaticResource("WinLevelImg.png", winLevelImg)
 	checkImgWidget := canvas.NewImageFromResource(checkImgResource)
+	windWindowWidget := canvas.NewImageFromResource(WinWindowImgResource)
 
 	checkImgWidget.SetMinSize(fyne.NewSize(128, 128))
 	btn := widget.Button{Text: "next level"}
-	btn2 := widget.Button{Text: "main menu"}
+	btn2 := widget.Button{Text: "games"}
 	btn3 := widget.Button{Text: "levels"}
 	winLabel := canvas.Text{Text: "You successfully solved the level"}
 	winLabel.TextSize = 24
+	winLabel.Color = color.RGBA{
+		R: 128,
+		G: 128,
+		B: 128,
+		A: 255,
+	}
 	winLabel.TextStyle.Bold = true
 
 	imgContainer := container.NewCenter(
@@ -78,7 +90,12 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 		win.Close()
 
 	}
-	win.SetContent(mainContentContainer)
+	windWindowWidget.Translucency = 0.15
+	combinedContainer := container.NewStack(
+		windWindowWidget,
+		mainContentContainer,
+	)
+	win.SetContent(combinedContainer)
 	win.CenterOnScreen()
 
 	win.Resize(fyne.NewSize(400, 220))

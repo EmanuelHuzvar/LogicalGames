@@ -3,6 +3,7 @@ package mainMenu
 import (
 	"ProjectMarekEmanuel/emanuel/buttons"
 	_ "embed"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
@@ -20,21 +21,22 @@ func MakeMenu() fyne.Window {
 	imgResource := fyne.NewStaticResource("background.jpg", backgroundImg)
 	backgroundImage := canvas.NewImageFromResource(imgResource)
 	backgroundImage.FillMode = canvas.ImageFillStretch
+
 	app := app.New()
 	menuWindow := app.NewWindow("Logitec App")
 	menuWindow.SetOnClosed(func() {
 		app.Quit()
 	})
 
-	exitButton := buttons.NewColoredTextButton("Quit", colornames.Blue, colornames.Azure, func() {
+	exitButton := buttons.NewColoredTextButton("Quit", colornames.Blue, colornames.Azure, colornames.Black, func() {
 		menuWindow.Close()
 	})
 
-	playButton := buttons.NewColoredTextButton("Play", colornames.Blue, colornames.Azure, func() {
+	playButton := buttons.NewColoredTextButton("Play", colornames.Blue, colornames.Azure, colornames.Black, func() {
 		playScreen := NewPlayScreen(menuWindow, app)
 		playScreen.Render()
 	})
-	creditsButton := buttons.NewColoredTextButton("Credits", colornames.Blue, colornames.Azure, func() {
+	creditsButton := buttons.NewColoredTextButton("Credits", colornames.Blue, colornames.Azure, colornames.Black, func() {
 		creditsScreen := NewCreditsScreen(menuWindow, app)
 		creditsScreen.Render()
 	})
