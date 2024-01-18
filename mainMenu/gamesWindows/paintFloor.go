@@ -43,8 +43,9 @@ var (
 	gridHeight       int
 	gridWidth        int
 	playerX, playerY int
-	obstacleColor    = color.RGBA{R: 128, G: 128, B: 128, A: 255} // Gray color for obstacles
-	playerColor      = color.RGBA{R: 255, G: 0, B: 0, A: 255}     // Red color for the player
+	obstacleColor    = color.RGBA{R: 238, G: 203, B: 255, A: 255} // Gray color for obstacles
+	playerColor      = color.RGBA{R: 111, G: 135, B: 153, A: 255}
+	paintFloorColor  = color.RGBA{R: 186, G: 225, B: 255, A: 255}
 )
 
 var levelCompleteMenu *widget.PopUp
@@ -197,9 +198,11 @@ func movePlayer(direction string) {
 }
 
 func paintCell(x, y int) {
-	grid[x][y].FillColor = color.Black
+	grid[x][y].FillColor = paintFloorColor
 	grid[x][y].Refresh()
 }
+
+//TODO
 
 func isObstacle(x, y int) bool {
 	return grid[x][y].FillColor == obstacleColor
@@ -208,7 +211,7 @@ func isObstacle(x, y int) bool {
 func checkLevelComplete() bool {
 	for x := 0; x < gridHeight; x++ {
 		for y := 0; y < gridWidth; y++ {
-			if grid[x][y].FillColor != color.Black && grid[x][y].FillColor != obstacleColor && grid[x][y].FillColor != playerColor {
+			if grid[x][y].FillColor != paintFloorColor && grid[x][y].FillColor != obstacleColor && grid[x][y].FillColor != playerColor {
 				return false
 			}
 		}

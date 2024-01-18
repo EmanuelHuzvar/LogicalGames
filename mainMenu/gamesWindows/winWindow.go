@@ -7,7 +7,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/image/colornames"
+	"image/color"
 	"strconv"
 )
 
@@ -30,7 +30,12 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 	btn3 := widget.Button{Text: "levels"}
 	winLabel := canvas.Text{Text: "You successfully solved the level"}
 	winLabel.TextSize = 24
-	winLabel.Color = colornames.White
+	winLabel.Color = color.RGBA{
+		R: 128,
+		G: 128,
+		B: 128,
+		A: 255,
+	}
 	winLabel.TextStyle.Bold = true
 
 	imgContainer := container.NewCenter(
