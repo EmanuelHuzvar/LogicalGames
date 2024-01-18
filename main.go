@@ -10,25 +10,28 @@ func main() {
 	//Game2048.MakeGame().ShowAndRun()
 
 	//fields := [][]string{
-	//	{"red", "green", "blue", "yellow"},
-	//	{"cyan", "purple", "magenta", "orange"},
-	//	{"green", "red", "yellow", "blue"},
-	//	{"purple", "cyan", "orange", "magenta"},
-	//	{"blue", "yellow", "red", "green"},
-	//	{"magenta", "orange", "cyan", "purple"},
-	//	{"yellow", "blue", "green", "red"},
-	//	{"orange", "magenta", "purple", "cyan"},
+	//	{"green", "yellow", "blue", "red"},
+	//	{"purple", "orange", "magenta", "cyan"},
+	//	{"red", "green", "yellow", "blue"},
+	//	{"cyan", "magenta", "purple", "orange"},
+	//	{"yellow", "blue", "red", "green"},
+	//	{"orange", "purple", "cyan", "magenta"},
+	//	{"blue", "red", "green", "yellow"},
+	//	{"magenta", "cyan", "orange", "purple"},
 	//}
-	//levelID := "5"
-	//cols := []int{3, 11, 3}
-	//rows := []int{3, 0, 3}
-	//winCil := []string{"101", "101", "101"}
-	//err := gamesWindows.AddLevelForNonogram(levelID, cols, rows, winCil)
+	//
+	//gamesWindows.AddLevelForBubble("15", fields)
+
+	//cols := []int{5, 22, 13, 22, 5}
+	//rows := []int{5, 22, 111, 5, 5}
+	//winCil := []string{"11111", "11011", "10111", "11011", "11111"}
+	//err := gamesWindows.AddLevelForNonogram("15", cols, rows, winCil)
 	//if err != nil {
 	//	fmt.Printf("Error adding level for Nonogram: %s\n", err)
 	//} else {
 	//	fmt.Println("Level added successfully for Nonogram.")
 	//}
+	//
 	//gamesWindows.AddLevelForBubble("4", fields)
 
 	//lvl3 := gamesWindows.NewLevel{
