@@ -18,6 +18,9 @@ var checkImg []byte
 //go:embed pictures/WinLevelImg.png
 var winLevelImg []byte
 
+//go:embed pictures/looseIcon.png
+var LooseLevelImg []byte
+
 func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasObject, game string) {
 
 	checkImgResource := fyne.NewStaticResource("check.png", checkImg)

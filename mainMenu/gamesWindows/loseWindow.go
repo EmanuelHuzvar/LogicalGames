@@ -7,15 +7,32 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"image/color"
 )
 
 func MakeLoseWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasObject, game string) {
-
+	looseImgRes := fyne.NewStaticResource("looseIcon.png", LooseLevelImg)
+	looseIcon := canvas.NewImageFromResource(looseImgRes)
+	WinWindowImgResource := fyne.NewStaticResource("WinLevelImg.png", winLevelImg)
+	windWindowWidget := canvas.NewImageFromResource(WinWindowImgResource)
+	windWindowWidget.Translucency = 0.25
 	btn := widget.Button{Text: "Restart"}
 	btn2 := widget.Button{Text: "main menu"}
 	winLabel := canvas.Text{Text: "Game Over"}
+	winLabel.Alignment = fyne.TextAlignCenter
 	winLabel.TextSize = 24
 	winLabel.TextStyle.Bold = true
+	winLabel.Color = color.RGBA{
+		R: 128,
+		G: 128,
+		B: 128,
+		A: 255,
+	}
+
+	imgContainer := container.NewCenter(
+		layout.NewSpacer(),
+		looseIcon,
+	)
 
 	btnConrainer := container.NewHBox(
 		layout.NewSpacer(),
@@ -23,13 +40,15 @@ func MakeLoseWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasO
 		&btn2,
 		layout.NewSpacer(),
 	)
-	labelContainer := container.NewCenter(
+	labelContainer := container.NewVBox(
 		&winLabel,
 	)
 
 	// Main ContentPaint
 	mainContentContainer := container.NewVBox(
 		labelContainer,
+		layout.NewSpacer(),
+		imgContainer,
 		btnConrainer,
 	)
 
@@ -55,7 +74,11 @@ func MakeLoseWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasO
 		}
 		win.Close()
 	}
-	win.SetContent(mainContentContainer)
+	combinedContainer := container.NewStack(
+		windWindowWidget,
+		mainContentContainer,
+	)
+	win.SetContent(combinedContainer)
 	win.CenterOnScreen()
 
 	win.Resize(fyne.NewSize(400, 220))

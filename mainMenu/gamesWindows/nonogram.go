@@ -24,6 +24,7 @@ const (
 	StateFilled
 )
 
+var level LevelNonogram
 var gridSize int
 var colsNumbers []int
 var rowsNumbers []int
@@ -205,7 +206,10 @@ func (ns *NonogramScreen) Render() {
 }
 
 func makeLevelNonogram(level string) *fyne.Container {
-
+	colsNumbers = nil
+	rowsNumbers = nil
+	colsWinNumbers = nil
+	cellsOfNonogramWin = nil
 	gird := createNonogramGridWithClues(level)
 	LevelInProggressNonogram = level
 	return gird
@@ -220,8 +224,10 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 	rowsNumbers = nil
 	colsWinNumbers = nil
 	cellsOfNonogramWin = nil
+	cellsOfNonogram = nil
 	LevelInProggressNonogram = ""
-	level, _ := GetLevelNonogramByID(nonogramLevel)
+	level = LevelNonogram{}
+	level, _ = GetLevelNonogramByID(nonogramLevel)
 	LevelInProggressNonogram = nonogramLevel
 	cols := len(level.Cols)
 	rows := len(level.Rows)
@@ -371,6 +377,7 @@ func createWinConditionGrid(gridSize int, colsWinNumbers []int) []*NonogramCell 
 	return cellsOfNonogramWin
 }
 func checkWinConditionNonogram(cellsOfNonogram []*NonogramCell, cellsOfNonogramWin []*NonogramCell) bool {
+	fmt.Println(cellsOfNonogram)
 	for i, cell := range cellsOfNonogram {
 
 		if cell.state == StateEmpty || cell.state == StateFilled {
