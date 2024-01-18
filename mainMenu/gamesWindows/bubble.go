@@ -348,7 +348,7 @@ func makeLevel(level string) *fyne.Container {
 		grid2,
 		layout.NewSpacer(),
 	)
-	backgroundImage.Translucency = 0.45
+	backgroundImage.Translucency = 0.55
 	combinedContainer := container.NewStack(
 		backgroundImage,
 		topContainer,

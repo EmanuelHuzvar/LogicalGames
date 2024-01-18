@@ -255,8 +255,15 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 			// First cell is empty because it's the corner of the clues
 			grid.Add(finalContainer)
 		} else {
+			if colsNumbers[i-1] > 100 {
+				firstNum := colsNumbers[i-1] / 100
+				secondNum := (colsNumbers[i-1] / 10) % 10
+				thirdNum := colsNumbers[i-1] % 10
 
-			if colsNumbers[i-1] > 10 {
+				label := widget.NewLabel(fmt.Sprintf("%d\n%d\n%d", firstNum, secondNum, thirdNum))
+
+				grid.Add(label)
+			} else if colsNumbers[i-1] > 10 {
 				firstNum := colsNumbers[i-1] / 10
 				secondNum := colsNumbers[i-1] % 10
 
@@ -273,7 +280,15 @@ func createNonogramGridWithClues(nonogramLevel string) *fyne.Container {
 
 	// Add the Nonogram cells and row clues
 	for y := 0; y < rows; y++ {
-		if rowsNumbers[y] > 10 {
+		if colsNumbers[y] > 100 {
+			firstNum := rowsNumbers[y] / 100
+			secondNum := (rowsNumbers[y] / 10) % 10
+			thirdNum := rowsNumbers[y] % 10
+
+			label := widget.NewLabel(fmt.Sprintf("%d\n%d\n%d", firstNum, secondNum, thirdNum))
+
+			grid.Add(label)
+		} else if rowsNumbers[y] > 10 {
 			firstNum := rowsNumbers[y] / 10
 			secondNum := rowsNumbers[y] % 10
 			grid.Add(widget.NewLabel(fmt.Sprintf("%d     %d", firstNum, secondNum)))

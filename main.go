@@ -1,6 +1,8 @@
 package main
 
-import "ProjectMarekEmanuel/mainMenu"
+import (
+	"ProjectMarekEmanuel/mainMenu"
+)
 
 func main() {
 	//marek games
@@ -20,16 +22,16 @@ func main() {
 	//
 	//gamesWindows.AddLevelForBubble("15", fields)
 
-	//cols := []int{3, 11, 3}
-	//rows := []int{3, 0, 3}
-	//winCil := []string{"101", "101", "101"}
-	//err := gamesWindows.AddLevelForNonogram(levelID, cols, rows, winCil)
+	//cols := []int{5, 22, 13, 22, 5}
+	//rows := []int{5, 22, 111, 5, 5}
+	//winCil := []string{"11111", "11011", "10111", "11011", "11111"}
+	//err := gamesWindows.AddLevelForNonogram("15", cols, rows, winCil)
 	//if err != nil {
 	//	fmt.Printf("Error adding level for Nonogram: %s\n", err)
 	//} else {
 	//	fmt.Println("Level added successfully for Nonogram.")
 	//}
-
+	//
 	mainMenu.MakeMenu().ShowAndRun()
 	//app := app.New()
 	//gamesWindows.MakeTryWindow(app)
