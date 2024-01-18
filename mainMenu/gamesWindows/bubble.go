@@ -301,9 +301,10 @@ func createFourByOneBunkWhite() *fyne.Container {
 	return bunkContainer
 }
 func makeLevel(level string) *fyne.Container {
+	LevelInProggress = ""
 	BackBtnImgResource := fyne.NewStaticResource("back-arrow.png", backBtnImg)
 	RestartBtnImg := fyne.NewStaticResource("back-arrow.png", restart)
-
+	LevelInProggress = level
 	imgResource := fyne.NewStaticResource("backroundBubble.jpg", backgroundImg)
 	backgroundImage := canvas.NewImageFromResource(imgResource)
 	backgroundImage.FillMode = canvas.ImageFillStretch

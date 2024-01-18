@@ -2,6 +2,7 @@ package gamesWindows
 
 import (
 	_ "embed"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
@@ -74,14 +75,17 @@ func MakeWinWindow(mainApp fyne.App, wind fyne.Window, mainContent fyne.CanvasOb
 	btn.OnTapped = func() {
 		if game == "bubble" {
 			level := increamentLevel(LevelInProggress)
+
 			if level == "15" {
 				level = "1"
 			}
+
 			content := makeLevel(level)
 			btnSetContent(wind, content)
 		}
 		if game == "paint" {
 			level := increamentLevel(LevelInProggress)
+			fmt.Println(level)
 			if level == "15" {
 				level = "1"
 			}
@@ -121,9 +125,9 @@ func btnSetContent(win fyne.Window, mainContent fyne.CanvasObject) {
 func increamentLevel(level string) string {
 	num, err := strconv.Atoi(level)
 	if err != nil {
+		fmt.Println(err)
 		return "1"
 	}
 	num++
-
 	return strconv.Itoa(num)
 }
